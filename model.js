@@ -26,6 +26,16 @@
 (function (root) {
   'use strict';
 
+  // Compressor cost basis: NETL H2_P_COM (2024) Eq. 3-22 to 3-24 (ANL HDSAM "H2 Compressor").
+  // Uninstalled cost per compressor (2007$) = a * W^b, W = compressor motor power (kW).
+  // Installed = 2 x uninstalled. Converted to GBP with US CPI-U 2007->2025 (officialdata.org, x1.5539)
+  // and the 2025 average GBP/USD (1.3193, poundsterlinglive.com).
+  var NETL_COMP_A = 1962.2, NETL_COMP_B = 0.8335, NETL_COMP_INSTALL = 2;
+  var CPI_2007_TO_2025 = 1.5539, CPI_2023_TO_2025 = 1.06, USD_PER_GBP_2025 = 1.3193;
+  function compCostGBP(wKw) {
+    if (!(wKw > 0)) return 0;
+    return NETL_COMP_INSTALL * NETL_COMP_A * Math.pow(wKw, NETL_COMP_B) * CPI_2007_TO_2025 / USD_PER_GBP_2025;
+  }
   var LHV_MJ_PER_KG = 119.96;     // hydrogen lower heating value (NIST: 119.96 MJ/kg)
   var R = 8.314462618;            // J/(mol K)
   var M_H2 = 2.016e-3;            // kg/mol
@@ -208,8 +218,8 @@
   }
 
   function finish(p, L, leakMW, deliveredMW, mGross, mDel, compMW, stationMW, n, sectionKm, capMW, extra) {
-    var pipeCapex = p.capKm * L * Math.pow(p.dnMm / p.refDn, p.dexp);     // GBP
-    var compCapex = compMW > 0 ? compMW * 1000 * p.compKw : 0;           // GBP
+    var pipeCapex = p.capKm * L * Math.pow(p.dnMm / p.refDn, p.dexp) * (1 + (p.specPct || 0) / 100);     // GBP, incl. special works allowance
+    var compCapex = n > 0 ? n * compCostGBP(stationMW * 1000) * (p.compMult == null ? 1 : p.compMult) : 0;  // GBP, NETL power law per station
     var capex = pipeCapex + compCapex;
     var i = p.wacc / 100;
     var annualCapex = capex * crf(i, p.life);
@@ -311,6 +321,7 @@
   }
 
   root.H2Model = {
+    compCostGBP: compCostGBP,
     crf: crf,
     frictionFactor: frictionFactor,
     props: props,

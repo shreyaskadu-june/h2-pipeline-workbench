@@ -2,7 +2,7 @@
 
 A static, browser-only screening calculator for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty, energy penalty and line inventory for UK corridors (Teesside, HyNet, Humber, Milford Haven, Grangemouth, London).
 
-Currency is GBP. Compressor and threshold inputs are still placeholders; see the sources table before use.
+Currency is GBP. Compressor cost now follows the NETL/HDSAM power law (converted to GBP). The £2.00/kg threshold is a user choice. Remaining unsourced inputs are marked in the sources table.
 
 Open `index.html` in a browser, or see the GitHub Pages site for this repository.
 
@@ -12,6 +12,7 @@ Open `index.html` in a browser, or see the GitHub Pages site for this repository
 - `model.js`: calculation (no DOM), so it can be tested separately.
 - `h2props.js`: hydrogen real-gas property table (NIST via CoolProp), loaded before `model.js`.
 - `app.js`: wiring, charts, map and checks.
+- `tests/regression.js`: regression checks (`node tests/regression.js`). Covers the CRF, the NETL compressor cost and workbook values, the NETL hydraulic sizing case, the UK default, and the legacy ratio reproduction.
 
 ## What it models
 
@@ -39,6 +40,26 @@ Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pi
 - Delivery pressure: 39 bar abs (38 barg) follows the Gas Governance OAD Section I offtake limit. National Gas states the NTS typically operates above 40 barg. The lower-pressure network tiers could not be verified from the sources checked.
 - Property table: covers 5–140 bar and −10 to 50 °C. The app rejects inputs outside this range.
 
+## Reconciliation with NETL (2023$ per tonne)
+
+Walk from NETL's own first-year break-even price to our levelised-cost formula, one assumption at a time. Same throughput (100 kt/yr) and pipeline capex (NETL Main sheet, 2023$).
+
+| Step | $/t |
+|---|---|
+| NETL first-year break-even price (full model: taxes, debt and equity, depreciation) | 63.35 |
+| Annuity at NETL WACC 6.44%, NETL capex including 15% contingency, NETL O&M 2.5% of pipeline capex | 55.34 |
+| Remove the 15% contingency (our model has none) | 49.72 |
+| Use 7% discount rate instead of 6.44% (our assumption) | 51.91 |
+| Use 4% fixed OPEX of capex instead of 2.5% of pipeline capex (our default) | 59.28 |
+
+The NETL "cost per tonne" of $31.21 is total undiscounted cost divided by total tonnes, so it is not comparable with a levelised price. The OPEX basis is the largest driver of the gap, larger than the discount rate. The reconciliation is in dollars of 2023; the UK default is in pounds of 2026 and is not converted here.
+
+## External cross-checks
+
+- **Hydraulic sizing vs NETL:** the model gives a 256.6 mm bore for NETL's 20.34 bar drop, against NETL's 255.5 mm (0.4%). Included in `tests/regression.js`.
+- **DNV GL (2019), *Hydrogen in the electricity value chain*, Tables 9–10:** the CAPEX column has no unit. Read as €/m, the 10-inch onshore 50 km case gives about €0.08/kg before compression, within DNV's €0.10–0.30/kg range. The reading is plausible but not confirmed. Scaled to DN800 with exponent 1.02, DNV's figure is about €1.8m/km (2019). Our £3.11m/km (2026) is roughly 1.5× that after an assumed £0.85/€ and about 40% UK inflation 2019→2026; neither conversion is sourced, so treat this as an order-of-magnitude check. DNV also assumes a 40-year life and 2% OPEX, and compression from 80 bar at entry, which is why its energy use (1.03 kWh/kg) is far above our UK default (0.09%).
+- **UKOPA and EGIG:** incident frequencies 0.10 and 0.15 per 1,000 km-yr. Context for the leakage assumption only.
+
 ## Uncertainties and sensitivities
 
 Each section of the app lists its own uncertainties and shows a live one-at-a-time sensitivity table. Section 08 holds the full table with a source and status for each input. Headline swings for the UK default (levelised cost, £/kg):
@@ -58,15 +79,16 @@ Every input that drives the answer is listed here with its source, or marked as 
 
 | Input | Default | Source | Source year | Status |
 |---|---|---|---|---|
-| Electricity price | £168/MWh (16.8p/kWh) | DESNZ Energy Trends, manufacturing, excl. CCL | Q4 2025 | Sourced |
+| Electricity price | £168/MWh (16.8p/kWh) | DESNZ Energy Trends, manufacturing, excl. CCL | Q4 2025 | Sourced. Latest quarterly release checked (Q2 2025) gives 17.08p; no price is published for the very large user band, so the manufacturing average is used. |
 | Pipeline CAPEX | £3.11m/km at DN800 | Cadent/HyNet report: £178m for 109 km, i.e. £1.63m/km for 18–24 inch (2021 money). Restated ×1.243 to 2026 using ONS CPI 2021→2026 (2026 partly forecast). Scaled from DN525 to DN800 with exponent 1.02 (Brown et al. 2022 US slope, NETL H2_P_COM workbook VBA). | 2021 base, 2026 restated | Sourced level; exponent sourced from US equations (level and shape are not the same basis) |
 | Discount rate | 7% | Investor-rate assumption. Ofgem final RIIO-3 gas WACC is 5.18% (semi-nominal, regulated) and is shown as the low benchmark. No published UK hydrogen-pipeline investor hurdle rate was found. | 2025 benchmark | Assumption |
 | LHV, density, viscosity, cp, k | 119.96 MJ/kg; 5.35 kg/m³; 8.76 µPa·s; 14.45 kJ/kg·K; 1.417 | NIST (via CoolProp) | Current | Sourced |
-| Compressor CAPEX | £1,030/kW | Placeholder; DESNZ gives £80k per unit at an unstated size | — | Unsourced |
+| Compressor CAPEX | NETL/HDSAM power law: 2 × 1,962.2 × W^0.8335 (2007$, W = motor kW), × 1.5539 (CPI-U 2007→2025), ÷ 1.3193 $/£ (2025 average). £1,463/kW at 1 MW, £1,119/kW at 5 MW, £889/kW at 20 MW | NETL H2_P_COM (2024) Eq. 3-22 to 3-24, from ANL HDSAM; CPI from officialdata.org; FX from poundsterlinglive (2025 average) | 2007 → 2025 | Sourced, US basis converted. Multiplier input for sensitivity. |
 | Station spacing | 200 km | Assumption | — | Unsourced |
-| Leakage | 0.2% per 1,000 km | Not yet traced to a published source | — | Unsourced |
+| Leakage | 0.2% per 1,000 km (volume) | Assumption. UKOPA incident rate 0.10 per 1,000 km-yr (2014–2018) and EGIG 0.15 (2012–2016) are incident frequencies, not a volume loss rate, so they do not source it | 2018 | Assumption |
+| Special works allowance | 0% of pipeline CAPEX | Excludes crossings, HDD and special works from the UK default. Range 0–15% is an assumption. DNV 2019 gives no crossing allowance | — | Assumption |
 | Velocity bands | 20 m/s amber, 30 m/s red | Screening choice, not a standard | — | Assumption |
-| Fixed OPEX | 4% of CAPEX/yr | DESNZ uses 5% for compressor O&M; 4% kept pending review | 2023 | Assumption |
+| Fixed OPEX | 4% of CAPEX/yr | DESNZ uses 5% for compressor O&M; NETL uses 2.5% of pipeline CAPEX (station O&M 4%); DNV uses 2%. Largest single step in the NETL reconciliation (see Checks). | 2023–2026 | Assumption, with a source range |
 | Utilisation | 90% | LH₂ carrier study uses 8,000 h/yr (≈91%) | 2022 | Assumption |
 | Asset life | 30 years | Assumption | — | Assumption |
 | Hub coordinates | Approximate | Public locations, not survey data | — | Approximate |
