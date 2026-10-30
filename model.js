@@ -16,12 +16,12 @@
 (function (root) {
   'use strict';
 
-  var LHV_MJ_PER_KG = 120;     // hydrogen lower heating value
+  var LHV_MJ_PER_KG = 119.96;     // hydrogen lower heating value (NIST: 119.96 MJ/kg)
   var R = 8.314462618;         // J/(mol K)
   var M_H2 = 2.016e-3;         // kg/mol
-  var MU_H2 = 8.9e-6;          // Pa s, hydrogen at ~15 C
-  var CP_H2 = 14300;           // J/(kg K)
-  var K_H2 = 1.41;             // heat capacity ratio
+  var MU_H2 = 8.76e-6;         // Pa s, hydrogen at ~15 C
+  var CP_H2 = 14450;           // J/(kg K)
+  var K_H2 = 1.417;            // heat capacity ratio
 
   function crf(i, n) {
     if (i === 0) return 1 / n;

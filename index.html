@@ -228,7 +228,7 @@
         <div class="field"><label for="pin">Inlet pressure (bar abs)</label><input type="number" id="pin" value="66.2"></div>
         <div class="field"><label for="pout">Outlet pressure (bar abs)</label><input type="number" id="pout" value="30"></div>
         <div class="field"><label for="tC">Gas temperature (°C)</label><input type="number" id="tC" value="15"></div>
-        <div class="field"><label for="z">Z-factor</label><input type="number" id="z" step="0.01" value="1.02"></div>
+        <div class="field"><label for="z">Z-factor</label><input type="number" id="z" step="0.01" value="1.04"></div>
         <div class="field"><label for="rough">Internal roughness (mm)</label><input type="number" id="rough" step="0.005" value="0.045"></div>
         <div class="field"><label for="eff">Pipeline efficiency</label><input type="number" id="eff" step="0.01" value="0.90"></div>
         <div class="field"><label for="vmax">Velocity screen (m/s)</label><input type="number" id="vmax" value="30"></div>
@@ -245,13 +245,13 @@
         <div class="field"><label for="maxpen">Maximum energy penalty (%)</label><input type="number" id="maxpen" value="15"></div>
 
         <h3>Economics</h3>
-        <p class="note">Placeholders in GBP. Replace with current values from DESNZ, Ofgem, NESO or project quotes before use.</p>
+        <p class="note">Electricity default is the DESNZ Energy Trends Q4 2025 manufacturing price (16.8p/kWh, excluding CCL). CAPEX, compressor and threshold values are placeholders in GBP: replace them with sourced values or project quotes before use.</p>
         <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="2150000"></div>
         <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.1" value="1.6"></div>
         <div class="field"><label for="refDn">Reference DN for CAPEX (mm)</label><input type="number" id="refDn" value="800"></div>
         <div class="field"><label for="compKw">Compressor CAPEX (£/kW)</label><input type="number" id="compKw" value="1030"></div>
         <div class="field"><label for="opex">Fixed OPEX (% of CAPEX/yr)</label><input type="number" id="opex" step="0.1" value="4"></div>
-        <div class="field"><label for="elec">Electricity (£/MWh)</label><input type="number" id="elec" value="70"></div>
+        <div class="field"><label for="elec">Electricity (£/MWh)</label><input type="number" id="elec" value="168"></div>
         <div class="field"><label for="life">Lifetime (years)</label><input type="number" id="life" value="30"></div>
         <div class="field"><label for="wacc">WACC (%)</label><input type="number" id="wacc" step="0.1" value="7"></div>
         <div class="field"><label for="thr">Threshold transport cost (£/kg)</label><input type="number" id="thr" step="0.1" value="2.0"></div>
@@ -327,11 +327,11 @@
         <li><b>Flow.</b> Source MW × (1 − routine leakage) ÷ LHV (120 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
         <li><b>Velocity and friction.</b> Inlet density from P, Z and T. Average velocity uses mean pressure. Friction factor from Colebrook, solved iteratively.</li>
         <li><b>Hydraulic capacity.</b> The flow at which the Darcy pressure drop over one section equals (inlet − outlet pressure) × efficiency.</li>
-        <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.3 kJ/kg·K and k = 1.41, divided by compressor efficiency.</li>
+        <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.45 kJ/kg·K and k = 1.417, divided by compressor efficiency.</li>
         <li><b>Cost.</b> (Pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
         <li><b>Leakage.</b> Routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
         <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
-        <li><b>Defaults.</b> CAPEX, compressor, electricity and threshold values are placeholders in GBP. Replace them with sourced UK values before relying on any output.</li>
+        <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). CAPEX, compressor and threshold values are placeholders in GBP. Compression is sized from the imposed pressure ratio, not from the hydraulic drop, so compressor power is a design choice; the hydraulic drop over one section is only about 1 bar at these flows.</li>
       </ul>
     </div>
   </section>
