@@ -225,8 +225,19 @@
       <div class="spec">
         <h3>Hydraulics</h3>
         <div class="field"><label for="dn">Diameter DN (mm)</label><input type="number" id="dn" value="800"></div>
-        <div class="field"><label for="pin">Inlet pressure (bar abs)</label><input type="number" id="pin" value="66.2"></div>
-        <div class="field"><label for="pout">Outlet pressure (bar abs)</label><input type="number" id="pout" value="30"></div>
+        <div class="field"><label for="mode">Pressure method</label>
+          <select id="mode">
+            <option value="balance" selected>Balance: compress only where pressure would fall below the minimum</option>
+            <option value="ratio">Legacy: impose a station pressure ratio Pin/Pout</option>
+          </select></div>
+        <div class="field"><label for="pin">Source (inlet) pressure (bar abs)</label><input type="number" id="pin" value="66.2"></div>
+        <div class="field"><label for="pdel">Minimum line pressure = delivery pressure (bar abs)</label><input type="number" id="pdel" value="30"></div>
+        <div class="field"><label for="pout">Legacy outlet pressure (bar abs, ratio method only)</label><input type="number" id="pout" value="30"></div>
+        <div class="field"><label for="grade">Line-pipe grade</label>
+          <select id="grade">
+            <option value="X52">X52</option><option value="X60">X60</option><option value="X65" selected>X65</option><option value="X70">X70</option>
+          </select></div>
+        <div class="field"><label for="wallMm">Wall thickness (mm)</label><input type="number" id="wallMm" step="0.5" value="16"></div>
         <div class="field"><label for="tC">Gas temperature (°C)</label><input type="number" id="tC" value="15"></div>
         <div class="field"><label for="z">Z-factor</label><input type="number" id="z" step="0.01" value="1.04"></div>
         <div class="field"><label for="rough">Internal roughness (mm)</label><input type="number" id="rough" step="0.005" value="0.045"></div>
@@ -240,8 +251,12 @@
 
         <h3>Losses and compression</h3>
         <div class="field"><label for="leak">Leakage (% per 1000 km)</label><input type="number" id="leak" step="0.01" value="0.2"></div>
-        <div class="field"><label for="spacing">Station spacing (km)</label><input type="number" id="spacing" value="200"></div>
+        <div class="field"><label for="spacing">Capacity section length (km)</label><input type="number" id="spacing" value="200"></div>
         <div class="field"><label for="ceff">Compressor efficiency</label><input type="number" id="ceff" step="0.01" value="0.75"></div>
+        <div class="field"><label for="groundC">Ground temperature (°C)</label><input type="number" id="groundC" step="0.1" value="10.6"></div>
+        <div class="field"><label for="uW">Overall heat transfer to ground (W/m²K)</label><input type="number" id="uW" step="0.1" value="2"></div>
+        <div class="field"><label for="bendsPerKm">Bends per km (number)</label><input type="number" id="bendsPerKm" step="0.05" value="0.1"></div>
+        <div class="field"><label for="kBend">Loss coefficient per bend (K)</label><input type="number" id="kBend" step="0.05" value="0.45"></div>
         <div class="field"><label for="maxpen">Maximum energy penalty (%)</label><input type="number" id="maxpen" value="15"></div>
 
         <h3>Economics</h3>
@@ -325,14 +340,18 @@
     <div class="sec-body">
       <ul class="method">
         <li><b>Flow.</b> Source MW × (1 − routine leakage) ÷ LHV (119.96 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
-        <li><b>Velocity and friction.</b> Inlet density from P, Z and T. Average velocity uses mean pressure. Friction factor from Colebrook, solved iteratively.</li>
-        <li><b>Hydraulic capacity.</b> The flow at which the Darcy pressure drop over one section equals (inlet − outlet pressure) × efficiency.</li>
-        <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.45 kJ/kg·K and k = 1.417, divided by compressor efficiency.</li>
+        <li><b>Real gas.</b> Density, Z, viscosity, cp, k and the Joule-Thomson coefficient come from a NIST table (CoolProp, 5–140 bar, −10 to 50 °C), interpolated at local pressure and temperature.</li>
+        <li><b>Line march (balance method).</b> The line is marched in 10 km steps from the source pressure. At each step: Darcy-Weisbach friction (Colebrook) plus fitting losses K·ρv²/2 reduce pressure; the Joule-Thomson effect and heat exchange with the ground (overall coefficient U, ground temperature) set the temperature.</li>
+        <li><b>Compression.</b> A compressor is added only where the pressure would fall below the minimum line pressure. It raises the gas to the source pressure and aftercools it to the inlet temperature. Isentropic power uses the real-gas cp and k at the suction state, divided by compressor efficiency.</li>
+        <li><b>Pressure limits.</b> MAOP = 2·t·F·SMYS/OD, using the IGEM/TD/1 Supplement 2 design factor for hydrogen (X52 0.50, X60 0.43, X65 0.40, X70 0.37) and API 5L SMYS. The source pressure should not exceed the MAOP.</li>
+        <li><b>Hydraulic capacity.</b> The flow at which the Darcy drop over one capacity section equals (source pressure − minimum pressure) × efficiency.</li>
+        <li><b>Legacy ratio method.</b> Kept for comparison. One station per spacing interval, each imposing the ratio P<sub>in</sub>/P<sub>out</sub> regardless of friction. This is the method behind earlier results and overstates compression at this flow.</li>
         <li><b>Cost.</b> (Pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
         <li><b>Leakage.</b> Routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
         <li><b>Interpretations.</b> The pipeline efficiency factor multiplies the allowable pressure drop when computing hydraulic capacity. The 20 m/s (amber) and 30 m/s (red) velocity bands are screening choices, not a published standard. Discount rate is 7% nominal, an investor-rate assumption. For reference, Ofgem's final RIIO-3 gas WACC is 5.18% (semi-nominal, regulated network, low risk); no published UK hydrogen-pipeline investor hurdle rate was found, so 7% is a judgement to be replaced with a project's own rate. Station spacing, leakage, OPEX and lifetime are still inherited defaults and are not independently sourced.</li>
         <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
-        <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). Pipeline CAPEX is sourced (HyNet/Cadent, restated to 2026 and scaled to DN800); compressor and threshold values are placeholders in GBP. Compression is sized from the imposed pressure ratio, not from the hydraulic drop, so compressor power is a design choice; the hydraulic drop over one section is only about 1 bar at these flows.</li>
+        <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). Pipeline CAPEX is sourced (HyNet/Cadent, restated to 2026 and scaled to DN800). Ground temperature 10.6 °C is the BGS mean soil temperature (GR_999999/1, 2018). Design factor and SMYS are from IGEM/TD/1 Supplement 2 and API 5L. The overall heat-transfer coefficient (2 W/m²K), wall thickness (16 mm), bends per km and K per bend are assumptions; compressor and threshold values are placeholders in GBP.</li>
+        <li><b>Result sensitivity.</b> Because friction at this throughput drops pressure by well under 1 bar per 100 km, compression depends mainly on the pressure window. With a 66 bar source and 30 bar minimum, the UK default needs no compressor to 354 km; the gas is let down at the delivery end, and that pressure energy is not recovered.</li>
       </ul>
     </div>
   </section>
@@ -345,6 +364,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="h2props.js"></script>
 <script src="model.js"></script>
 <script src="app.js"></script>
 </body>

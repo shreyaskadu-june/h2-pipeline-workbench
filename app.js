@@ -37,8 +37,10 @@
   function readParams() {
     return {
       routeKm: num('routeKmIn'), leak: num('leak'), srcMW: num('srcMW'), dnMm: num('dn'),
-      pin: num('pin'), pout: num('pout'), tC: num('tC'), z: num('z'), roughMm: num('rough'),
+      mode: $('mode').value, grade: $('grade').value, wallMm: num('wallMm'),
+      pin: num('pin'), pdel: num('pdel'), pout: num('pout'), tC: num('tC'), z: num('z'), roughMm: num('rough'),
       eff: num('eff'), vmax: num('vmax'), spacing: num('spacing'), ceff: num('ceff'),
+      groundC: num('groundC'), uW: num('uW'), bendsPerKm: num('bendsPerKm'), kBend: num('kBend'),
       capKm: num('capKm'), dexp: num('dexp'), refDn: num('refDn'), compKw: num('compKw'),
       opex: num('opex'), elec: num('elec'), life: num('life'), wacc: num('wacc'),
       util: num('util'), demand: num('demand'), thr: num('thr'), maxpen: num('maxpen')
@@ -48,12 +50,22 @@
   function validate(p) {
     var keys = Object.keys(p);
     for (var i = 0; i < keys.length; i++) {
+      if (keys[i] === 'mode' || keys[i] === 'grade') continue;   // text choices
       if (!isFinite(p[keys[i]])) return 'Enter a number in every field.';
     }
+    if (p.mode !== 'ratio' && p.mode !== 'balance') return 'Choose a pressure method.';
+    if (!H.GRADES[p.grade]) return 'Choose a line-pipe grade.';
     if (p.routeKm <= 0) return 'Route length must be positive.';
     if (p.dnMm <= 0 || p.refDn <= 0) return 'Diameter must be positive.';
-    if (p.pin <= p.pout) return 'Inlet pressure must be above outlet pressure.';
-    if (p.pout <= 0) return 'Outlet pressure must be positive.';
+    if (p.pdel <= 0) return 'Minimum line pressure must be positive.';
+    if (p.mode === 'ratio') {
+      if (p.pin <= p.pout) return 'Inlet pressure must be above the legacy outlet pressure.';
+      if (p.pout <= 0) return 'Outlet pressure must be positive.';
+    } else if (p.pin <= p.pdel) {
+      return 'Source pressure must be above the minimum line pressure.';
+    }
+    if (p.wallMm <= 0) return 'Wall thickness must be positive.';
+    if (p.uW < 0) return 'Heat transfer coefficient cannot be negative.';
     if (p.eff <= 0 || p.eff > 1) return 'Pipeline efficiency must be between 0 and 1.';
     if (p.ceff <= 0 || p.ceff > 1) return 'Compressor efficiency must be between 0 and 1.';
     if (p.util <= 0 || p.util > 100) return 'Utilisation must be between 0 and 100%.';
@@ -187,8 +199,14 @@
       row('Available source energy', fmt(p.srcMW, 0) + ' MW entering pipe') +
       row('Average gas velocity', fmt(r.vAvg, 1) + ' m/s') +
       row('Inlet velocity', fmt(r.vIn, 1) + ' m/s') +
-      row('Section pressure ratio', fmt(r.ratio, 2)) +
-      row('Compressor stations', r.stations + ' (section ' + fmt(r.sectionKm, 0) + ' km)') +
+      row('Pressure method', p.mode === 'ratio' ? 'Legacy imposed ratio' : 'Balance (compress when needed)') +
+      row('Source pressure', fmt(p.pin, 1) + ' bar abs') +
+      row('Delivered pressure', fmt(r.pDelivered, 1) + ' bar abs at ' + fmt(r.tDelivered, 1) + ' °C') +
+      row('Pressure let-down at delivery', fmt(r.letDownBar, 1) + ' bar (not recovered)') +
+      row('Lowest pressure on the line', fmt(r.minPressureBar !== undefined ? r.minPressureBar : r.pDelivered, 1) + ' bar abs') +
+      row('Maximum station ratio', fmt(r.ratio, 2)) +
+      row('Compressor stations', r.stations + (r.stations > 0 ? ' (average power ' + fmt(r.stationMW, 2) + ' MW)' : '')) +
+      row('MAOP for grade and wall', fmt(r.maopBar, 1) + ' bar') +
       row('Hydraulic capacity (per section)', fmt(r.capacityMW, 0) + ' MW') +
       row('Net annual delivery', fmt(r.annualKt, 1) + ' kt/yr') +
       row('Break-even distance (threshold)', (H.breakEvenKm(p) === null ? 'below 50 km' : fmt(H.breakEvenKm(p), 0) + ' km'));
@@ -213,8 +231,14 @@
     var h = '';
     h += check('warn', 'Dedicated hydrogen design', 'Purpose-built H₂ service is assumed. The reference workbench cites examples near 65 bar(g); this is context, not a design limit, and has not been independently verified here.');
     h += p.srcMW <= r.capacityMW
-      ? check('ok', 'Source fits hydraulic capacity', 'Calculated hydraulic capacity is ' + fmt(r.capacityMW, 0) + ' MW for approximately ' + fmt(r.sectionKm, 0) + ' km per pressure section.')
-      : check('warn', 'Source exceeds hydraulic capacity', 'The source is ' + fmt(p.srcMW, 0) + ' MW but one section carries about ' + fmt(r.capacityMW, 0) + ' MW at this pressure drop. Add stations, raise the diameter, or reduce the source.');
+      ? check('ok', 'Source fits hydraulic capacity', 'Calculated hydraulic capacity is ' + fmt(r.capacityMW, 0) + ' MW over one ' + fmt(p.spacing, 0) + ' km capacity section.')
+      : check('warn', 'Source exceeds hydraulic capacity', 'The source is ' + fmt(p.srcMW, 0) + ' MW but one ' + fmt(p.spacing, 0) + ' km capacity section carries about ' + fmt(r.capacityMW, 0) + ' MW at this allowable drop. Raise the diameter, lower the spacing, or reduce the source.');
+    h += r.deliveryOk
+      ? check('ok', 'Delivery pressure met', 'Gas arrives at ' + fmt(r.pDelivered, 1) + ' bar, at or above the ' + fmt(p.pdel, 0) + ' bar minimum.')
+      : check('warn', 'Delivery pressure below minimum', 'Gas arrives at ' + fmt(r.pDelivered, 1) + ' bar, below the ' + fmt(p.pdel, 0) + ' bar minimum. Raise the source pressure or add compression.');
+    h += r.maopOk
+      ? check('ok', 'Source pressure within MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar is within the ' + fmt(r.maopBar, 1) + ' bar MAOP for ' + p.grade + ' and ' + fmt(p.wallMm, 1) + ' mm wall (design factor and SMYS per IGEM/TD/1 Supplement 2).')
+      : check('warn', 'Source pressure above MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar exceeds the ' + fmt(r.maopBar, 1) + ' bar MAOP for this grade and wall.');
     h += r.penaltyPct <= p.maxpen
       ? check('ok', 'Energy penalty is ' + fmt(r.penaltyPct, 1) + '%', 'Routine H₂ leakage is ' + fmt(r.leakMW, 2) + ' MW and recompression electricity is ' + fmt(r.compMW, 2) + ' MW. Pressure drop itself is not counted as destroyed chemical energy.')
       : check('warn', 'Energy penalty above ' + fmt(p.maxpen, 0) + '%', 'Penalty is ' + fmt(r.penaltyPct, 1) + '%, above the set maximum.');
@@ -224,7 +248,7 @@
     h += be !== null && be >= p.routeKm
       ? check('ok', 'Scenario passes to ' + fmt(be, 0) + ' km', 'This is the maximum passing distance in the current 50–5,000 km sweep, not a universal pipeline limit.')
       : check('warn', 'Scenario does not pass at this distance', 'The threshold is exceeded at the current route length for this throughput.');
-    h += check('warn', 'Steady-state screening model', 'Real-gas, friction, transient and leakage complexity is simplified. Elevation, fittings, impurities and fatigue life are outside this screen.');
+    h += check('warn', 'Steady-state screening model', 'Friction, fittings, real-gas properties (NIST), Joule-Thomson and ground heat exchange are included. Transient flow, line-pack, elevation, impurities, fatigue and let-down energy recovery are not.');
     h += check('warn', 'Routine loss is separate from accidental release', 'Accidental buried-pipeline leaks and their consequences are not represented by the routine leakage percentage.');
     $('checks').innerHTML = h;
   }
@@ -334,7 +358,7 @@
     var head = p.thr - r.lco;
     $('kHeadroom').textContent = (head >= 0 ? 'Headroom to threshold: ' : 'Over threshold by: ') + eur(Math.abs(head)) + '/kg';
     $('kComp').innerHTML = fmt(r.compMW, 2) + ' <small>MW</small>';
-    $('kSections').textContent = r.stations + ' repeated pressure section' + (r.stations === 1 ? '' : 's');
+    $('kSections').textContent = r.stations === 0 ? 'no compressor needed' : r.stations + ' compressor station' + (r.stations === 1 ? '' : 's');
     $('kCapex').innerHTML = '£' + fmt(r.capex / 1e6, 1) + '<small>m</small>';
     $('kAnnual').textContent = 'annualised £' + fmt(r.annualCapex / 1e6, 1) + 'm/yr';
     $('kPenalty').innerHTML = fmt(r.penaltyPct, 1) + '%';
@@ -386,6 +410,9 @@
     $('setSink').addEventListener('click', function () { setMode(state.mode === 'sink' ? null : 'sink'); });
     document.querySelectorAll('input').forEach(function (el) {
       el.addEventListener('input', scheduleRender);
+    });
+    document.querySelectorAll('select#mode, select#grade').forEach(function (el) {
+      el.addEventListener('change', scheduleRender);
     });
     render();
   }

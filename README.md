@@ -10,26 +10,30 @@ Open `index.html` in a browser, or see the GitHub Pages site for this repository
 
 - `index.html`: layout and styles.
 - `model.js`: calculation (no DOM), so it can be tested separately.
+- `h2props.js`: hydrogen real-gas property table (NIST via CoolProp), loaded before `model.js`.
 - `app.js`: wiring, charts, map and checks.
 
 ## What it models
 
-- Dedicated hydrogen pipeline, steady state, Darcy-Weisbach with Colebrook friction.
-- Compressor stations every spacing interval, each raising pressure from outlet back to inlet.
+- Dedicated hydrogen pipeline, steady state.
+- Balance method (default): the line is marched in 10 km steps from the source pressure, with Darcy-Weisbach friction (Colebrook), fitting losses, real-gas density and viscosity from the NIST table, the Joule-Thomson temperature change and heat exchange with the ground. A compressor is added only where the pressure would fall below the minimum line pressure; it restores the source pressure and aftercools to the inlet temperature.
+- Legacy ratio method (kept for comparison): one station per spacing interval, each imposing the pressure ratio Pin/Pout regardless of friction.
+- Maximum allowable operating pressure from grade and wall thickness (IGEM/TD/1 Supplement 2 design factor for hydrogen, API 5L SMYS).
 - CAPEX scaled with diameter; annualised with CRF; fixed OPEX and compressor electricity.
 - Routine leakage per 1000 km (reduces delivered energy only).
 
 ## What it does not model
 
-Transient flow, elevation, fittings, impurities, fatigue life, repurposed-pipeline derating, and accidental buried-pipeline release. Results are screening estimates, not a design basis.
+Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pipeline derating, let-down energy recovery at the delivery end, and accidental buried-pipeline release. Results are screening estimates, not a design basis.
 
 ## Checks
 
-- The calculation was re-derived independently in Python (NIST properties via CoolProp, Colebrook via a root finder). The JavaScript agrees to about 0.1% when both use the same constants.
-- Fluid constants follow NIST: Z = 1.04, viscosity 8.76 µPa·s, cp 14.45 kJ/kg·K, k = 1.417, LHV 119.96 MJ/kg.
-- UK default (Teesside to London, 354 km, DN800, 1,000 MW, 7%, £168/MWh, pipeline CAPEX £3.98m/km at DN800 in 2026 money): compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg, net 236 kt/yr, break-even about 800 km at a £2.00/kg threshold.
-- Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, EUR inputs as first published): compression 12.1 MW, penalty 1.25%, CAPEX EUR 432m, LCO EUR 0.24/kg. The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
-- Compression is sized from the imposed pressure ratio. The NETL default pressures (69 to 49 bar, 85% efficiency) would cut compression to about 8.5 MW for the UK case. Choose pressures deliberately.
+- The balance calculation was re-derived independently in Python with CoolProp properties evaluated directly (no lookup table). Delivered pressure and compression agree with the JavaScript to two decimal places for the cases tested (UK default, 1000 km, 45 bar source at 354 km and 3000 km).
+- The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.87/kg.
+- Hand check: for the UK default flow (8.33 kg/s, DN800, 177 km section), the Darcy gradient gives about 0.0038 bar/km, or about 0.7 bar per 177 km, which matches the marched result.
+- UK default (Teesside to London, 354 km, DN800, 1,000 MW, source 66.2 bar, minimum 30 bar, 7%, £168/MWh, CAPEX £3.98m/km at DN800 in 2026 money): no compressor is needed. The gas arrives at 64.8 bar and 10.6 °C and is let down to 30 bar at delivery (not recovered). Energy penalty 0.07%, CAPEX £1,410m, levelised cost £0.72/kg, break-even about 980 km at a £2.00/kg threshold.
+- Legacy ratio method for the same case: compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
+- Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, EUR inputs as first published): compression 12.1 MW, penalty 1.25%, CAPEX EUR 432m, LCO EUR 0.24/kg (legacy method). The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
 
 ## Sources and yearly review
 
@@ -49,6 +53,13 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Utilisation | 90% | LH₂ carrier study uses 8,000 h/yr (≈91%) | 2022 | Assumption |
 | Asset life | 30 years | Assumption | — | Assumption |
 | Hub coordinates | Approximate | Public locations, not survey data | — | Approximate |
+| Design factor for hydrogen | 0.40 for X65 (0.50 X52, 0.43 X60, 0.37 X70) | IGEM/TD/1 Ed.6 Supplement 2, Table S1, as reproduced in the Cosham ICHEME paper. Check against the standard itself (it is paywalled). | Edition 6, Supplement 2 (edition date not verified) | Sourced |
+| SMYS by grade | X65 448 MPa (X52 359, X60 414, X70 483) | API 5L specified minimum yield strength | Standard | Sourced |
+| Ground temperature | 10.6 °C mean soil; 5.2–16 °C range at 1 m | British Geological Survey, GR_999999/1 (Ground Source Heat Pump, Basic) | 2018 | Sourced |
+| Overall heat transfer to ground | 2 W/m²K | Assumption; a sourced buried-pipeline value is still to be found | — | Assumption (small effect: about 4 K cooling over the route) |
+| Wall thickness | 16 mm | Assumption; sets MAOP (68.9 bar for X65 DN800) | — | Assumption |
+| Fitting losses | 0.1 bends per km, K = 0.45 each | Crane TP-410 long-radius 90° elbow K = 0.45 (as reproduced in a Neutrium table; check the Crane original). Bend count is an assumption. | — | Partly sourced |
+| Real-gas properties | Density, Z, viscosity, cp, k, Joule-Thomson coefficient | NIST via CoolProp 8.0.0 (`h2props.js`) | Current | Sourced |
 
 **Yearly review.** Each year, in the first week of November, the repository owner re-checks every row marked Sourced or Assumption against new publications and updates this table:
 
