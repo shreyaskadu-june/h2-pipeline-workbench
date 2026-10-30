@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add('js');</script>
 <title>UK Hydrogen Pipeline Techno-Economic Workbench</title>
 <meta name="description" content="UK screening data sheet for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty and line inventory for industrial hubs.">
 <meta name="theme-color" content="#f3efe6">
@@ -41,7 +42,7 @@
   h1, h2, h3, .figure { font-family: "Newsreader", Georgia, "Times New Roman", serif; font-weight: 500; }
 
   /* Masthead */
-  .masthead { border-top: 4px solid var(--rule); padding: 18px 0 22px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; border-bottom: 1px solid var(--rule); }
+  .masthead { border-top: 4px solid var(--rule); padding: 18px 0 22px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; border-bottom: 1px solid var(--rule); }
   .masthead h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; margin: 10px 0 10px; letter-spacing: -.015em; }
   .masthead .deck { max-width: 640px; color: var(--ink-2); font-size: 15px; }
   .route-box { min-width: 280px; text-align: right; }
@@ -65,7 +66,7 @@
   .sec-head h2 { font-size: 26px; margin: 0; letter-spacing: -.01em; }
   .sec-head p { grid-column: 2; margin: 2px 0 0; color: var(--muted); max-width: 680px; font-size: 13.5px; }
   .sec-body { padding-left: 64px; }
-  @media (max-width: 720px) { .sec-body { padding-left: 0; } .sec-head { grid-template-columns: 1fr; } .sec-head p { grid-column: 1; } }
+  @media (max-width: 720px) { .sec-body { padding-left: 0; } .sec-head { grid-template-columns: minmax(0, 1fr); } .sec-head p { grid-column: 1; } }
 
   /* Readout */
   .readout { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
@@ -77,12 +78,12 @@
   .readout .note { font-size: 12px; color: var(--muted); }
   .readout .figure.accent { color: var(--accent); }
   @media (max-width: 1000px) { .readout { grid-template-columns: repeat(3, minmax(0, 1fr)); } .readout > div:nth-child(3) { border-right: none; } }
-  @media (max-width: 560px) { .readout { grid-template-columns: 1fr 1fr; } .readout > div { border-right: none; margin-right: 0; padding-right: 10px; border-bottom: 1px solid var(--hair); } .figure { font-size: 30px; } }
+  @media (max-width: 560px) { .readout { grid-template-columns: minmax(0, 1fr) 1fr; } .readout > div { border-right: none; margin-right: 0; padding-right: 10px; border-bottom: 1px solid var(--hair); } .figure { font-size: 30px; } }
 
   /* Route */
   .route-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 28px; }
-  @media (max-width: 860px) { .route-grid { grid-template-columns: 1fr; } }
-  .route-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 860px) { .route-grid { grid-template-columns: minmax(0, 1fr); } }
+  .route-fields { display: grid; grid-template-columns: minmax(0, 1fr) 1fr; gap: 0 14px; }
   .route-fields .wide { grid-column: 1 / -1; }
   #map { height: 380px; border: 1px solid var(--ink); }
   .map-cap { font-size: 12px; color: var(--muted); margin-top: 6px; }
@@ -100,18 +101,18 @@
   .spec h3 { grid-column: 1 / -1; font-size: 17px; margin: 14px 0 8px; padding-top: 10px; border-top: 1px solid var(--hair); }
   .spec h3:first-child { margin-top: 0; border-top: none; padding-top: 0; }
   .spec p.note { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin: -2px 0 8px; }
-  @media (max-width: 960px) { .spec { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 560px) { .spec { grid-template-columns: 1fr; } }
+  @media (max-width: 960px) { .spec { grid-template-columns: minmax(0, 1fr) 1fr; } }
+  @media (max-width: 560px) { .spec { grid-template-columns: minmax(0, 1fr); } }
   .err { color: var(--warn-ink); font-size: 13px; min-height: 18px; margin-top: 8px; }
 
   /* Charts */
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .charts { display: grid; grid-template-columns: minmax(0, 1fr) 1fr; gap: 28px; }
   .charts .full { grid-column: 1 / -1; }
   .chart-cap h3 { font-size: 18px; margin: 0 0 2px; }
   .chart-cap p { margin: 0 0 8px; color: var(--muted); font-size: 12.5px; }
   .chart-box { position: relative; height: 260px; border-top: 1px solid var(--ink); padding-top: 10px; }
   .charts .full .chart-box { height: 280px; }
-  @media (max-width: 860px) { .charts { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .charts { grid-template-columns: minmax(0, 1fr); } }
 
   /* Tables */
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -126,8 +127,8 @@
   .cell.fail { background: var(--fail-bg); color: var(--fail-ink); }
   .cell small { display: block; font-size: 10.5px; opacity: .9; font-family: "IBM Plex Mono", monospace; }
   .legend { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
-  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+  .two-col { display: grid; grid-template-columns: minmax(0, 1fr) 1fr; gap: 36px; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
   .two-col h3 { font-size: 18px; margin: 0 0 6px; }
   .snap td:first-child { font-family: "IBM Plex Sans", sans-serif; font-weight: 500; }
   .note-box { color: var(--muted); font-size: 12.5px; margin-top: 12px; max-width: 640px; }
@@ -151,7 +152,7 @@
 
   .colophon { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 18px; color: var(--muted); font-size: 12px; font-family: "IBM Plex Mono", monospace; }
   .status-line { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
-  @media (max-width: 520px) { .page { padding: 0 16px 40px; } .masthead { grid-template-columns: 1fr; } .route-box { text-align: left; min-width: 0; } .route-box .btn-row { justify-content: flex-start; } }
+  @media (max-width: 520px) { .page { padding: 0 16px 40px; } .masthead { grid-template-columns: minmax(0, 1fr); } .route-box { text-align: left; min-width: 0; } .route-box .btn-row { justify-content: flex-start; } }
   .uncert { margin-top: 24px; border-top: 1px solid var(--hair); padding-top: 12px; }
   .uncert h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
   .uncert ul { margin: 0 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.5; }
@@ -160,6 +161,24 @@
   .sens-table td, .sens-table th { padding: 4px 6px; text-align: left; vertical-align: top; }
   .sens-table td.num, .sens-table th.num { text-align: right; white-space: nowrap; }
   .sens-table small { color: var(--muted); }
+  /* Keep wide tables inside their own scroll box instead of widening the page */
+  .sec, .sec-body, .sec-head > div, .sec-body > *, .grid-table, .hyd-wrap { min-width: 0; max-width: 100%; }
+  .grid-table, .sens-table, .table-wrap { overflow-x: auto; }
+
+  /* Introduction */
+  .intro { max-width: 68ch; padding: 22px 0 4px; font-size: 15px; line-height: 1.6; }
+  .intro p { margin: 0; }
+  /* Motion. Only enabled when scripts run; reduced-motion users get none (see below). */
+  html.js section.sec { opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease; }
+  html.js section.sec.in { opacity: 1; transform: none; }
+  .figure.pulse { animation: figPulse .45s ease-out; }
+  @keyframes figPulse { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .btn { transition: transform .12s ease, background-color .2s ease, color .2s ease; }
+  .btn:active { transform: translateY(1px) scale(.98); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    html.js section.sec { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -179,6 +198,10 @@
     </div>
   </header>
 
+  <section class="intro" aria-label="About this tool">
+    <p>This tool screens a hydrogen transmission pipeline between two UK points. Enter a route, a source capacity and a delivery pressure, and it returns the pipeline size, any compression needed to hold pressure, the energy lost, the capital and running costs, and a levelised transport cost in £/kg. Each input is either sourced or marked as an assumption, and each section shows what the result is most sensitive to. It is a screening tool: it does not model transient flow, accidental release or elevation changes, and it is not a substitute for a front-end engineering study.</p>
+  </section>
+
   <section class="sec" aria-labelledby="s-readout">
     <div class="sec-head"><div class="sec-num">01</div><div><h2 id="s-readout">Readout</h2></div>
       <p>Headline results for the current case. Figures update as you change any input.</p></div>
@@ -193,7 +216,7 @@
       </div>
     </div>
 
-    <div class="uncert"><h3>Uncertainties and sensitivities (headline)</h3><ul><li>The route factor is the largest single driver of distance (1.30 default; literature range 1.20–1.40).</li><li>Pipeline CAPEX is a single HyNet/Cadent project figure restated to 2026 and scaled to DN800. ±30% is an assumed uncertainty, not a sourced range.</li><li>The discount rate (7%) and electricity price matter mainly when compression is needed. For the UK default no compressor is required, so the electricity price does not change the headline.</li><li>Hub coordinates are approximate. Straight-line distance is between hub points, not terminals.</li><li>Screening only: no transient flow, line-pack, elevation, accidental release or let-down energy recovery (on hold).</li></ul><div class="sens-table" id="sens-01"></div></div>
+    <div class="uncert"><h3>Uncertainties and sensitivities (headline)</h3><ul><li>The route factor is the largest single driver of distance (1.30 default; literature range 1.20–1.40).</li><li>Pipeline CAPEX is a single HyNet/Cadent project figure restated to 2026 and scaled to DN800. ±30% is an assumed uncertainty, not a sourced range.</li><li>The discount rate (7%) and electricity price matter mainly when compression is needed. For the UK default no compressor is required, so the electricity price does not change the headline.</li><li>Hub coordinates are approximate. Straight-line distance is between hub points, not terminals.</li><li>Demand (300 t/day) is an assumed figure, not a forecast. Coverage and surplus depend on it.</li><li>Screening only: no transient flow, line-pack, elevation, accidental release or let-down energy recovery (on hold).</li></ul><div class="sens-table" id="sens-01"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-route">
@@ -339,7 +362,7 @@
         </div>
         <div>
           <h3>Hydraulic and delivery</h3>
-          <table id="hydTable"></table>
+          <div class="table-wrap"><table id="hydTable"></table></div>
         </div>
       </div>
       <div style="margin-top:28px">

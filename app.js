@@ -30,7 +30,54 @@
              sinkName: pr.sinkName, sinkLat: pr.sinkLat, sinkLon: pr.sinkLon, routeKm: km };
   }
 
-  var state = { map: null, srcMarker: null, sinkMarker: null, line: null, mode: null, charts: {} };
+  var state = { map: null, srcMarker: null, sinkMarker: null, line: null, mode: null, charts: {}, lastLco: NaN, tween: null, lastRouteKey: null };
+
+  var reduceMotion = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
+
+  // Count a headline number from its previous value to the new one (400 ms, ease-out).
+  function countTo(el, from, to, fmtFn) {
+    if (state.tween) cancelAnimationFrame(state.tween);
+    if (reduceMotion() || !isFinite(from) || !isFinite(to) || from === to || !window.requestAnimationFrame) {
+      el.innerHTML = fmtFn(to); return;
+    }
+    var t0 = null, dur = 400;
+    var step = function (ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.innerHTML = fmtFn(from + (to - from) * e);
+      state.tween = k < 1 ? requestAnimationFrame(step) : null;
+    };
+    state.tween = requestAnimationFrame(step);
+  }
+
+  // Briefly fade a readout figure in when its value changes.
+  function pulse(el) {
+    if (!el || reduceMotion()) return;
+    el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+  }
+
+  // Draw the route line from source to sink when the corridor changes.
+  function drawLine(line) {
+    var el = line && line.getElement ? line.getElement() : null;
+    if (!el || !el.getTotalLength || reduceMotion()) return;
+    var len = el.getTotalLength();
+    el.style.transition = 'none';
+    el.style.strokeDasharray = len + ' ' + len;
+    el.style.strokeDashoffset = len;
+    void el.getBoundingClientRect();
+    el.style.transition = 'stroke-dashoffset .9s ease-out';
+    el.style.strokeDashoffset = '0';
+  }
+
+  // Fade each section in once, as it scrolls into view.
+  function setupReveal() {
+    var secs = document.querySelectorAll('section.sec');
+    if (!('IntersectionObserver' in window)) { for (var i = 0; i < secs.length; i++) secs[i].classList.add('in'); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    for (var j = 0; j < secs.length; j++) io.observe(secs[j]);
+  }
 
   function num(id) { return Number($(id).value); }
 
@@ -137,6 +184,7 @@
     }
     state.srcMarker.bindTooltip(r.srcName);
     state.sinkMarker.bindTooltip(r.sinkName);
+    if (state.lastRouteKey !== r.srcName + '|' + r.sinkName) { state.lastRouteKey = r.srcName + '|' + r.sinkName; drawLine(state.line); }
     if (!state.fitted) {
       state.map.fitBounds(L.latLngBounds([s, t]).pad(0.3));
       state.fitted = true;
@@ -358,11 +406,16 @@
     $('routeKm').textContent = fmt(p.routeKm, 0) + ' km (' + fmt(p.straightKm, 0) + ' km × ' + fmt(p.routeFactor, 2) + ')';
 
     var r = H.evaluate(p);
+    ['kDelivered', 'kCoverage', 'kLco', 'kComp', 'kCapex', 'kPenalty'].forEach(function (id) { pulse($(id)); });
     $('kDelivered').innerHTML = fmt(r.deliveredMW, 0) + ' <small>MW</small>';
     $('kDeliveredNote').textContent = fmt(r.deliveredKgH, 0) + ' kg/h H₂ equivalent';
+    var surplusTpd = r.deliveredTpd - p.demand;
     $('kCoverage').textContent = fmt(r.coverage * 100, 0) + '%';
-    $('kUnmet').textContent = fmt(r.unmetTpd, 1) + ' t/day unmet';
-    $('kLco').innerHTML = eur(r.lco) + '<small>/kg</small>';
+    $('kUnmet').textContent = r.coverage >= 1
+      ? 'surplus ' + fmt(surplusTpd, 0) + ' t/day above ' + fmt(p.demand, 0) + ' t/day demand (assumed)'
+      : fmt(r.unmetTpd, 1) + ' t/day unmet of ' + fmt(p.demand, 0) + ' t/day demand (assumed)';
+    countTo($('kLco'), state.lastLco, r.lco, function (v) { return eur(v) + '<small>/kg</small>'; });
+    state.lastLco = r.lco;
     var head = p.thr - r.lco;
     $('kHeadroom').textContent = (head >= 0 ? 'Headroom to threshold: ' : 'Over threshold by: ') + eur(Math.abs(head)) + '/kg';
     $('kComp').innerHTML = fmt(r.compMW, 2) + ' <small>MW</small>';
@@ -498,6 +551,7 @@
   }
 
   function init() {
+    setupReveal();
     setRouteFields(presetRoute(PRESETS[0]));
     initMap();
     $('recalc').addEventListener('click', render);

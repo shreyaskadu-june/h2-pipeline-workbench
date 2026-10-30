@@ -29,6 +29,9 @@ Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pi
 
 ## Checks
 
+- Demand coverage reads as a surplus (t/day above demand) when delivery exceeds demand, and as unmet t/day otherwise. Both depend on the assumed 300 t/day demand.
+- Front page: introduction and motion. Animations are CSS and short count-ups, switched off for reduced-motion users. The page adds no horizontal scroll on a 390 px phone.
+
 - The balance calculation was re-derived independently in Python with CoolProp properties evaluated directly (no lookup table). Delivered pressure and compression agree with the JavaScript for the cases tested (UK default, 1000 km, 45 bar source at 354 km and 3000 km).
 - The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.71/kg at 354 km with no route factor on the current CAPEX basis (£0.87/kg on the previous basis).
 - Hand check: for the UK default flow (8.33 kg/s, DN800, 177 km section), the Darcy gradient gives about 0.0038 bar/km, or about 0.7 bar per 177 km, which matches the marched result.
@@ -89,6 +92,7 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Special works allowance | 0% of pipeline CAPEX | Excludes crossings, HDD and special works from the UK default. Range 0–15% is an assumption. DNV 2019 gives no crossing allowance | — | Assumption |
 | Velocity bands | 20 m/s amber, 30 m/s red | Screening choice, not a standard | — | Assumption |
 | Fixed OPEX | 4% of CAPEX/yr | DESNZ uses 5% for compressor O&M; NETL uses 2.5% of pipeline CAPEX (station O&M 4%); DNV uses 2%. Largest single step in the NETL reconciliation (see Checks). | 2023–2026 | Assumption, with a source range |
+| Demand | 300 t/day | Assumed demand used only for coverage and surplus. Not a forecast. | — | Assumption |
 | Utilisation | 90% | LH₂ carrier study uses 8,000 h/yr (≈91%) | 2022 | Assumption |
 | Asset life | 30 years | Assumption | — | Assumption |
 | Hub coordinates | Approximate | Public locations, not survey data | — | Approximate |
