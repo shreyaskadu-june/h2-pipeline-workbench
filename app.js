@@ -8,7 +8,7 @@
   var css = function (name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); };
 
   // UK hydrogen corridor presets. Coordinates are approximate hub locations.
-  // Route length is the straight-line distance (route factor 1.0), editable in the form.
+  // Pipeline length = straight-line distance x route factor (default 1.30), both editable in the form.
   var PRESETS = [
     { key: 'teesside-london', label: 'Teesside to London (demand)',
       srcName: 'Teesside hub', srcLat: 54.60, srcLon: -1.15,
@@ -35,8 +35,10 @@
   function num(id) { return Number($(id).value); }
 
   function readParams() {
+    var straightKm = num('routeKmIn'), factor = num('routeFactor');
     return {
-      routeKm: num('routeKmIn'), leak: num('leak'), srcMW: num('srcMW'), dnMm: num('dn'),
+      straightKm: straightKm, routeFactor: factor, routeKm: straightKm * factor,
+      leak: num('leak'), srcMW: num('srcMW'), dnMm: num('dn'),
       mode: $('mode').value, grade: $('grade').value, wallMm: num('wallMm'),
       pin: num('pin'), pdel: num('pdel'), pout: num('pout'), tC: num('tC'), z: num('z'), roughMm: num('rough'),
       eff: num('eff'), vmax: num('vmax'), spacing: num('spacing'), ceff: num('ceff'),
@@ -55,7 +57,8 @@
     }
     if (p.mode !== 'ratio' && p.mode !== 'balance') return 'Choose a pressure method.';
     if (!H.GRADES[p.grade]) return 'Choose a line-pipe grade.';
-    if (p.routeKm <= 0) return 'Route length must be positive.';
+    if (p.straightKm <= 0) return 'Straight-line distance must be positive.';
+    if (p.routeFactor < 1) return 'Route factor must be at least 1.';
     if (p.dnMm <= 0 || p.refDn <= 0) return 'Diameter must be positive.';
     if (p.pdel <= 0) return 'Minimum line pressure must be positive.';
     if (p.mode === 'ratio') {
@@ -208,7 +211,6 @@
       row('Pressure method', p.mode === 'ratio' ? 'Legacy imposed ratio' : 'Balance (compress when needed)') +
       row('Source pressure', fmt(p.pin, 1) + ' bar abs') +
       row('Delivered pressure', fmt(r.pDelivered, 1) + ' bar abs at ' + fmt(r.tDelivered, 1) + ' °C') +
-      row('Pressure let-down at delivery', fmt(r.letDownBar, 1) + ' bar; up to ' + fmt(r.letDownMW, 1) + ' MW of pressure energy not recovered (ideal upper bound)') +
       row('Lowest pressure on the line', fmt(r.minPressureBar !== undefined ? r.minPressureBar : r.pDelivered, 1) + ' bar abs') +
       row('Maximum station ratio', fmt(r.ratio, 2)) +
       row('Compressor stations', r.stations + (r.stations > 0 ? ' (average power ' + fmt(r.stationMW, 2) + ' MW)' : '')) +
@@ -353,7 +355,7 @@
     if (err) return;
     var route = routeFromFields();
     $('routeName').textContent = route.srcName + ' to ' + route.sinkName;
-    $('routeKm').textContent = fmt(p.routeKm, 0) + ' km';
+    $('routeKm').textContent = fmt(p.routeKm, 0) + ' km (' + fmt(p.straightKm, 0) + ' km × ' + fmt(p.routeFactor, 2) + ')';
 
     var r = H.evaluate(p);
     $('kDelivered').innerHTML = fmt(r.deliveredMW, 0) + ' <small>MW</small>';
@@ -371,11 +373,119 @@
     $('kPenaltyNote').textContent = fmt(r.leakMW, 2) + ' MW leakage + ' + fmt(r.compMW, 2) + ' MW compression';
 
     renderTables(p, r);
+    renderSensitivity(p, r);
     renderChecks(p, r);
     renderScenarios(p);
     renderGrid(p);
     renderCharts(p, r);
     drawMap();
+  }
+
+
+  // ---------- Sensitivity ----------
+  // One input at a time, others held at the current values. Output: levelised cost (£/kg).
+  // Ranges are either literature/source-based or stated assumptions; see `src`.
+  var SENS = [
+    { key: 'routeFactor', label: 'Route factor', lo: 1.10, hi: 1.40, fmt: function (v) { return fmt(v, 2); },
+      secs: ['01', '02', '03', '08'],
+      src: 'Literature 1.20–1.40 (arXiv 2505.01124). Not UK-specific.' },
+    { key: 'capKm', label: 'Pipeline CAPEX (£/km, DN800)', rel: [0.7, 1.3], fmt: function (v) { return '£' + fmt(v / 1e6, 2) + 'm'; },
+      secs: ['01', '03', '04', '08'],
+      src: 'Single HyNet/Cadent project, restated to 2026. ±30% is an assumed range.' },
+    { key: 'wacc', label: 'Discount rate (%)', lo: 5.18, hi: 9, fmt: function (v) { return fmt(v, 2) + '%'; },
+      secs: ['01', '03', '04', '08'],
+      src: '5.18% is the Ofgem final gas WACC (semi-nominal, regulated). 9% is an investor-risk assumption.' },
+    { key: 'elec', label: 'Electricity (£/MWh)', lo: 120, hi: 220, fmt: function (v) { return '£' + fmt(v, 0); },
+      secs: ['03', '08'],
+      src: 'DESNZ Q4 2025 manufacturing £168/MWh. Range is an assumed ±30%.' },
+    { key: 'pin', label: 'Source pressure (bar abs)', lo: 45, hi: 68.9, fmt: function (v) { return fmt(v, 1); },
+      secs: ['03', '08'],
+      src: 'NTS typically above 40 barg (National Gas). High end is the derived MAOP for X65, 16 mm wall.' },
+    { key: 'pdel', label: 'Delivery pressure (bar abs)', lo: 8, hi: 46, fmt: function (v) { return fmt(v, 1); },
+      secs: ['03', '08'],
+      src: '39 bar abs = 38 barg offtake limit (Gas Governance OAD Section I). 8 bar abs is a low-pressure example; its basis is unverified.' },
+    { key: 'dnMm', label: 'Diameter DN (mm)', lo: 700, hi: 900, fmt: function (v) { return fmt(v, 0); },
+      secs: ['02', '03', '05', '08'],
+      src: 'Design choice, not an input from a source.' },
+    { key: 'dexp', label: 'Diameter scaling exponent', lo: 1.3, hi: 1.9, fmt: function (v) { return fmt(v, 2); },
+      secs: ['03', '05', '08'],
+      src: 'Assumed 1.6. No sourced exponent found for hydrogen pipelines in this study.' },
+    { key: 'srcMW', label: 'Source capacity (MW, LHV)', lo: 500, hi: 1500, fmt: function (v) { return fmt(v, 0) + ' MW'; },
+      secs: ['03', '06', '08'],
+      src: 'Scenario range; not a sourced forecast.' },
+    { key: 'util', label: 'Utilisation (%)', lo: 80, hi: 95, fmt: function (v) { return fmt(v, 0) + '%'; },
+      secs: ['03', '06', '08'],
+      src: '8,000 h/yr in the LH₂ carrier study (≈91%). Range is an assumption.' },
+    { key: 'opex', label: 'Fixed OPEX (% of CAPEX/yr)', lo: 2, hi: 6, fmt: function (v) { return fmt(v, 1) + '%'; },
+      secs: ['03', '08'],
+      src: 'Assumed 4%. DESNZ uses 5% for compressor O&M, not pipeline.' },
+    { key: 'life', label: 'Asset life (years)', lo: 25, hi: 40, fmt: function (v) { return fmt(v, 0); },
+      secs: ['03', '08'],
+      src: 'Assumption. Not sourced.' },
+    { key: 'compKw', label: 'Compressor CAPEX (£/kW)', lo: 800, hi: 1500, fmt: function (v) { return '£' + fmt(v, 0); },
+      secs: ['03', '08'],
+      src: 'Placeholder. Matters only where compression is needed.' },
+    { key: 'leak', label: 'Leakage (% per 1000 km)', lo: 0.1, hi: 0.5, fmt: function (v) { return fmt(v,2) + '%'; },
+      secs: ['03', '08'],
+      src: 'Not traced to a published source.' },
+    { key: 'uW', label: 'Heat transfer to ground (W/m²K)', lo: 0.5, hi: 5, fmt: function (v) { return fmt(v, 1); },
+      secs: ['03', '08'],
+      src: 'Assumption. Affects temperature only.' },
+    { key: 'groundC', label: 'Ground temperature (°C)', lo: 5.2, hi: 16, fmt: function (v) { return fmt(v, 1); },
+      secs: ['03', '08'],
+      src: 'BGS 1 m annual range, GR_999999/1 (2018).' },
+    { key: 'tC', label: 'Gas temperature (°C)', lo: 5, hi: 25, fmt: function (v) { return fmt(v, 0); },
+      secs: ['03', '08'],
+      src: 'Assumption.' },
+    { key: 'roughMm', label: 'Internal roughness (mm)', lo: 0.02, hi: 0.1, fmt: function (v) { return fmt(v,3); },
+      secs: ['03', '08'],
+      src: 'Assumption. Affects friction only.' },
+    { key: 'bendsPerKm', label: 'Bends per km', lo: 0, hi: 0.5, fmt: function (v) { return fmt(v, 2); },
+      secs: ['03', '08'],
+      src: 'Assumption. Affects friction only.' }
+  ];
+
+  function sensOverride(p, s, val) {
+    var q = Object.assign({}, p);
+    q[s.key] = val;
+    if (s.key === 'routeFactor') q.routeKm = q.straightKm * val;
+    return q;
+  }
+
+  function sensRows(p) {
+    var base = H.evaluate(p).lco;
+    return SENS.map(function (s) {
+      var lo = s.rel ? p[s.key] * s.rel[0] : s.lo;
+      var hi = s.rel ? p[s.key] * s.rel[1] : s.hi;
+      var cLo = H.evaluate(sensOverride(p, s, lo)).lco;
+      var cHi = H.evaluate(sensOverride(p, s, hi)).lco;
+      return { s: s, base: base, baseVal: p[s.key], lo: lo, hi: hi, cLo: cLo, cHi: cHi, swing: Math.abs(cHi - cLo) };
+    });
+  }
+
+  function renderSensitivity(p) {
+    var rows = sensRows(p);
+    var secIds = ['01', '02', '03', '04', '05', '06', '07', '08'];
+    secIds.forEach(function (sec) {
+      var el = $('sens-' + sec);
+      if (!el) return;
+      var list = rows.filter(function (r) { return r.s.secs.indexOf(sec) !== -1; });
+      if (sec === '08') list = rows;
+      if (sec === '01') list = list.filter(function (r) { return ['routeFactor', 'capKm', 'wacc', 'elec'].indexOf(r.s.key) !== -1; });
+      if (!list.length) { el.innerHTML = ''; return; }
+      var h = '<table><thead><tr><th>Input</th><th class="num">Current</th><th class="num">Tested</th>' +
+        '<th class="num">LCO low</th><th class="num">LCO high</th><th class="num">Swing</th>' +
+        (sec === '08' ? '<th>Source and status</th>' : '') + '</tr></thead><tbody>';
+      list.forEach(function (r) {
+        h += '<tr><td>' + r.s.label + '</td>' +
+          '<td class="num">' + r.s.fmt(r.baseVal) + '</td>' +
+          '<td class="num">' + r.s.fmt(r.lo) + ' – ' + r.s.fmt(r.hi) + '</td>' +
+          '<td class="num">' + eur(r.cLo) + '</td><td class="num">' + eur(r.cHi) + '</td>' +
+          '<td class="num">' + eur(r.swing) + '</td>' +
+          (sec === '08' ? '<td><small>' + r.s.src + '</small></td>' : '') + '</tr>';
+      });
+      el.innerHTML = h + '</tbody></table><p class="note">Base case ' + eur(rows[0].base) + '/kg. Each row changes one input; others are held at their current values.</p>';
+    });
   }
 
   var debounceTimer = null;

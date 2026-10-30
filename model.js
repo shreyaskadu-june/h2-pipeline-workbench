@@ -252,17 +252,15 @@
     var capMW = balanceCapacityMW(p, spacingKm);
     var maop = maopBar(p);
     var sectionKm = L / (n + 1);
-    var tDelK = route.tOut + 273.15;
-    var letDownMW = route.pOut > p.pdel
-      ? mGross * (8.314462618 / M_H2) * tDelK * Math.log(route.pOut / p.pdel) / 1e6 : 0;
+
     return finish(p, L, leakMW, deliveredMW, mGross, mDel, compMW, stationMW, n, sectionKm, capMW, {
       mode: 'balance',
       vIn: route.vIn, vAvg: route.vAvg, Re: route.Re, f: route.f, dPbar: route.dPbar,
       inletDensity: route.rhoIn, ratio: route.maxStationRatio,
-      pDelivered: route.pOut, tDelivered: route.tOut, letDownBar: Math.max(0, route.pOut - p.pdel),
+      pDelivered: route.pOut, tDelivered: route.tOut, 
       minPressureBar: route.minPbar, deliveryOk: route.pOut >= p.pdel,
       pInlet: p.pin, pdel: p.pdel, maopBar: maop, maopOk: p.pin <= maop,
-      stationsCount: n, letDownMW: letDownMW, requiredWallMm: requiredWallMm(p)
+      stationsCount: n, requiredWallMm: requiredWallMm(p)
     });
   }
 
@@ -283,9 +281,9 @@
       mode: 'ratio',
       vIn: hyd.vIn, vAvg: hyd.vAvg, Re: hyd.Re, f: hyd.f, dPbar: hyd.dPbar,
       inletDensity: hyd.rhoIn, ratio: p.pin / p.pout,
-      pDelivered: p.pout, tDelivered: p.tC, letDownBar: 0, deliveryOk: true,
+      pDelivered: p.pout, tDelivered: p.tC, deliveryOk: true,
       pInlet: p.pin, pdel: p.pout, maopBar: maopBar(p), maopOk: p.pin <= maopBar(p),
-      sectionDropBar: hyd.dPbar, stationsCount: n, letDownMW: 0, requiredWallMm: requiredWallMm(p)
+      sectionDropBar: hyd.dPbar, stationsCount: n, requiredWallMm: requiredWallMm(p)
     });
   }
 

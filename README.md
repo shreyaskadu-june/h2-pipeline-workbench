@@ -24,17 +24,32 @@ Open `index.html` in a browser, or see the GitHub Pages site for this repository
 
 ## What it does not model
 
-Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pipeline derating, let-down energy recovery at the delivery end, and accidental buried-pipeline release. Results are screening estimates, not a design basis.
+Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pipeline derating, accidental buried-pipeline release, and let-down energy recovery at the delivery end (on hold; not costed). Results are screening estimates, not a design basis.
 
 ## Checks
 
-- The balance calculation was re-derived independently in Python with CoolProp properties evaluated directly (no lookup table). Delivered pressure and compression agree with the JavaScript to two decimal places for the cases tested (UK default, 1000 km, 45 bar source at 354 km and 3000 km).
-- The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.87/kg.
+- The balance calculation was re-derived independently in Python with CoolProp properties evaluated directly (no lookup table). Delivered pressure and compression agree with the JavaScript for the cases tested (UK default, 1000 km, 45 bar source at 354 km and 3000 km).
+- The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.87/kg at 354 km with no route factor.
 - Hand check: for the UK default flow (8.33 kg/s, DN800, 177 km section), the Darcy gradient gives about 0.0038 bar/km, or about 0.7 bar per 177 km, which matches the marched result.
-- UK default (Teesside to London, 354 km, DN800, 1,000 MW, source 66.2 bar, minimum 30 bar, 7%, £168/MWh, CAPEX £3.98m/km at DN800 in 2026 money): no compressor is needed. The gas arrives at 64.8 bar and 10.6 °C and is let down to 30 bar at delivery (not recovered). Energy penalty 0.07%, CAPEX £1,410m, levelised cost £0.72/kg, break-even about 980 km at a £2.00/kg threshold.
-- Legacy ratio method for the same case: compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
+- UK default (Teesside to London: 354 km straight line × route factor 1.30 = 460 km; DN800; 1,000 MW; source 66.2 bar; delivery 39 bar abs; 7%; £168/MWh; CAPEX £3.98m/km at DN800 in 2026 money): no compressor is needed. Gas arrives at 64.4 bar and 10.6 °C. Energy penalty 0.09%, CAPEX £1,833m, levelised cost £0.94/kg, net 236 kt/yr, break-even about 980 km of pipeline (route length) at a £2.00/kg threshold.
+- Without the route factor (354 km), the same case gives £0.72/kg.
+- Legacy ratio method for the same 354 km case: compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
 - Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, legacy ratio method, EUR): compression 12.14 MW and penalty 1.25% reproduce. With the current defaults and the €2.15m/km pipeline cost, CAPEX is €372m and LCO €0.22/kg at 7%. The earlier figures of €432m and €0.24/kg cannot be reproduced because the exact inputs were not recorded; treat them as superseded. The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
-- Limits found in the audit: the straight-line route length understates real routing (a 1.25 route factor raises the Teesside–London cost from £0.72 to £0.90/kg); the property table covers 5–140 bar and −10 to 50 °C and the app now rejects inputs outside it.
+- Route factor: the literature range is 1.20–1.40 (arXiv 2505.01124). It covers bends, deviations and detours. It does not cover vertical rise, river or road crossings, or special works.
+- Delivery pressure: 39 bar abs (38 barg) follows the Gas Governance OAD Section I offtake limit. National Gas states the NTS typically operates above 40 barg. The lower-pressure network tiers could not be verified from the sources checked.
+- Property table: covers 5–140 bar and −10 to 50 °C. The app rejects inputs outside this range.
+
+## Uncertainties and sensitivities
+
+Each section of the app lists its own uncertainties and shows a live one-at-a-time sensitivity table. Section 08 holds the full table with a source and status for each input. Headline swings for the UK default (levelised cost, £/kg):
+
+- Route factor 1.10–1.40: £0.79 to £1.01 (swing £0.22).
+- Pipeline CAPEX ±30%: £0.65 to £1.22 (swing £0.56).
+- Discount rate 5.18–9%: £0.83 to £1.06 (swing £0.24).
+- Electricity, source pressure, delivery pressure: zero swing for the UK default, because no compressor is needed in the tested ranges.
+- Diameter DN 700–900 mm, diameter exponent, and the other inputs: see the table in section 08.
+
+Known gaps: the route-factor range is not UK-specific; the CAPEX ±30% range is an assumption; the leakage, heat-transfer, wall and bend inputs are unsourced or assumed.
 
 ## Sources and yearly review
 
@@ -54,6 +69,8 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Utilisation | 90% | LH₂ carrier study uses 8,000 h/yr (≈91%) | 2022 | Assumption |
 | Asset life | 30 years | Assumption | — | Assumption |
 | Hub coordinates | Approximate | Public locations, not survey data | — | Approximate |
+| Route factor | 1.30 (range 1.20–1.40) | arXiv 2505.01124: literature detour factors 1.20–1.40; 1.30 is the paper's standard approach. Not UK-specific. | 2025 paper | Sourced range, not UK-specific |
+| Delivery pressure | 39 bar abs (38 barg) | Gas Governance OAD Section I: offtake pressure limit 38 barg. National Gas: NTS typically above 40 barg. Network tiers unverified. | Current | Sourced, partly |
 | Design factor for hydrogen | 0.40 for X65 (0.50 X52, 0.43 X60, 0.37 X70) | IGEM/TD/1 Ed.6 Supplement 2, Table S1, as reproduced in the Cosham ICHEME paper. Check against the standard itself (it is paywalled). | Edition 6, Supplement 2 (edition date not verified) | Sourced |
 | SMYS by grade | X65 448 MPa (X52 359, X60 414, X70 483) | API 5L specified minimum yield strength | Standard | Sourced |
 | Ground temperature | 10.6 °C mean soil; 5.2–16 °C range at 1 m | British Geological Survey, GR_999999/1 (Ground Source Heat Pump, Basic) | 2018 | Sourced |

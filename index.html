@@ -152,6 +152,14 @@
   .colophon { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 18px; color: var(--muted); font-size: 12px; font-family: "IBM Plex Mono", monospace; }
   .status-line { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
   @media (max-width: 520px) { .page { padding: 0 16px 40px; } .masthead { grid-template-columns: 1fr; } .route-box { text-align: left; min-width: 0; } .route-box .btn-row { justify-content: flex-start; } }
+  .uncert { margin-top: 24px; border-top: 1px solid var(--hair); padding-top: 12px; }
+  .uncert h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  .uncert ul { margin: 0 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+  .sens-table { overflow-x: auto; }
+  .sens-table table { font-size: 12px; }
+  .sens-table td, .sens-table th { padding: 4px 6px; text-align: left; vertical-align: top; }
+  .sens-table td.num, .sens-table th.num { text-align: right; white-space: nowrap; }
+  .sens-table small { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -166,7 +174,7 @@
     <div class="route-box">
       <div class="eyebrow">Current corridor</div>
       <div class="route-name" id="routeName">Teesside hub to London (demand)</div>
-      <div class="route-km"><span id="routeKm">354 km</span></div>
+      <div class="route-km"><span id="routeKm">460 km (354 km × 1.30)</span></div>
       <div class="btn-row"><button class="btn solid" id="recalc" type="button">Recalculate</button></div>
     </div>
   </header>
@@ -184,11 +192,13 @@
         <div><div class="label">Energy penalty</div><div class="figure" id="kPenalty">–</div><div class="note" id="kPenaltyNote"></div></div>
       </div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (headline)</h3><ul><li>The route factor is the largest single driver of distance (1.30 default; literature range 1.20–1.40).</li><li>Pipeline CAPEX is a single HyNet/Cadent project figure restated to 2026 and scaled to DN800. ±30% is an assumed uncertainty, not a sourced range.</li><li>The discount rate (7%) and electricity price matter mainly when compression is needed. For the UK default no compressor is required, so the electricity price does not change the headline.</li><li>Hub coordinates are approximate. Straight-line distance is between hub points, not terminals.</li><li>Screening only: no transient flow, line-pack, elevation, accidental release or let-down energy recovery (on hold).</li></ul><div class="sens-table" id="sens-01"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-route">
     <div class="sec-head"><div class="sec-num">02</div><div><h2 id="s-route">Route</h2></div>
-      <p>Pick a UK corridor, place your own terminals on the map, or type coordinates. Route length defaults to the straight-line distance.</p></div>
+      <p>Pick a UK corridor, place your own terminals on the map, or type coordinates. Pipeline length = straight-line distance × route factor (default 1.30).</p></div>
     <div class="sec-body route-grid">
       <div>
         <div class="field"><label for="preset">UK corridor preset</label><select id="preset"></select></div>
@@ -204,7 +214,9 @@
           <div class="field"><label for="sinkLat">Sink latitude</label><input type="number" id="sinkLat" step="0.001" value="51.51"></div>
           <div class="field"><label for="srcLon">Source longitude</label><input type="number" id="srcLon" step="0.001" value="-1.15"></div>
           <div class="field"><label for="sinkLon">Sink longitude</label><input type="number" id="sinkLon" step="0.001" value="0.1"></div>
-          <div class="field wide"><label for="routeKmIn">Route length (km)</label><input type="number" id="routeKmIn" step="1" value="354"></div>
+          <div class="field"><label for="routeKmIn">Straight-line distance (km)</label><input type="number" id="routeKmIn" step="1" value="354"></div>
+          <div class="field"><label for="routeFactor">Route factor (pipeline length ÷ straight line)</label><input type="number" id="routeFactor" step="0.01" value="1.30"></div>
+          <p class="note wide">The route factor adds length for bends, deviations and detours around terrain and obstacles. It does not add vertical rise, river or road crossings, or special works. The literature range is 1.20–1.40 (arXiv 2505.01124, which cites Galimova et al., Timmerberg &amp; Kaltschmitt, Linsel &amp; Bertsch and Hampp et al.); 1.30 is the paper's standard value. These values are not UK-specific.</p>
         </div>
         <div class="btn-row">
           <button class="btn solid" id="applyRoute" type="button">Apply route</button>
@@ -216,6 +228,8 @@
         <div class="map-cap" id="mapStatus">Select Source or Sink, then click the map to place it. Outside selection mode, drag to pan. Map © OpenStreetMap contributors.</div>
       </div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (route)</h3><ul><li>Route length = straight-line distance × route factor. The route factor covers bends, deviations and detours; it does not add vertical rise (elevation).</li><li>River, road and rail crossings and other special works are not costed separately. They would add CAPEX not in the model.</li><li>The route factor is a literature range, not a UK-specific measurement. A corridor survey would replace it.</li><li>Hub coordinates are approximate public locations.</li></ul><div class="sens-table" id="sens-02"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-spec">
@@ -231,7 +245,7 @@
             <option value="ratio">Legacy: impose a station pressure ratio Pin/Pout</option>
           </select></div>
         <div class="field"><label for="pin">Source (inlet) pressure (bar abs)</label><input type="number" id="pin" value="66.2"></div>
-        <div class="field"><label for="pdel">Minimum line pressure = delivery pressure (bar abs)</label><input type="number" id="pdel" value="30"></div>
+        <div class="field"><label for="pdel">Delivery pressure = minimum line pressure (bar abs)</label><input type="number" id="pdel" value="39"></div>
         <div class="field"><label for="pout">Legacy outlet pressure (bar abs, ratio method only)</label><input type="number" id="pout" value="30"></div>
         <div class="field"><label for="grade">Line-pipe grade</label>
           <select id="grade">
@@ -273,6 +287,8 @@
       </div>
       <div class="err" id="inputErr" role="alert"></div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (specification)</h3><ul><li>Hydraulics: roughness, gas temperature, heat transfer to ground, bends and fitting losses are assumptions or from one source each; their effect on cost is small at this flow (see table).</li><li>Pressures: source pressure is limited by MAOP, which depends on the grade and wall. The wall (16 mm) is an assumption; the required wall at 66.2 bar is 15.3 mm.</li><li>Delivery pressure: 39 bar absolute (38 barg), from the OAD Section I offtake limit. Its effect on the UK default is small because the line does not need compression.</li><li>Supply and losses: leakage (0.2%/1000 km) is not sourced. Utilisation (90%) is an assumption based on an 8,000 h/yr carrier study.</li><li>Economics: CAPEX, diameter exponent (1.6, assumed), WACC, OPEX (4%), electricity (£168/MWh, DESNZ Q4 2025) and asset life (30 years) each carry uncertainty; the table shows the cost range for each.</li></ul><div class="sens-table" id="sens-03"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-profiles">
@@ -295,6 +311,8 @@
         <div class="chart-box"><canvas id="chartCost"></canvas></div>
       </div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (profiles)</h3><ul><li>Profiles extend the same inputs across 50–5,000 km. Pipeline cost is linear in length, so long routes depend heavily on the CAPEX-per-km assumption.</li><li>Compression appears in the energy profile only where the pressure would fall below the minimum, which depends on the source and delivery pressures.</li></ul><div class="sens-table" id="sens-04"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-viability">
@@ -304,6 +322,8 @@
       <div class="grid-table"><table id="gridTable"></table></div>
       <div class="legend"><b>Key:</b> pass = under threshold, velocity ≤ 20 m/s · conditional = under threshold, velocity 20–30 m/s · capacity-limited = hydraulically constrained · above cost = over threshold.</div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (viability grid)</h3><ul><li>Cell classes depend on the £2.00/kg threshold, the 20 and 30 m/s velocity bands (screening choices, not standards) and the capacity check.</li><li>Every cell uses the current diameter (DN) and cost inputs. Changing DN moves the whole grid.</li><li>The grid is a screen. A cell that passes does not mean a project is feasible.</li></ul><div class="sens-table" id="sens-05"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-scen">
@@ -326,12 +346,16 @@
         <table id="comTable"></table>
       </div>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (scenarios)</h3><ul><li>Utilisation and source size change cost per kg through the fixed annual charges.</li><li>DN changes CAPEX non-linearly through the diameter exponent (assumed 1.6), so DN scenarios depend on that exponent.</li><li>Corridor scenarios use the same route factor as the base case.</li></ul><div class="sens-table" id="sens-06"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-assess">
     <div class="sec-head"><div class="sec-num">07</div><div><h2 id="s-assess">Assessment</h2></div>
       <p>Decision-support signals for the current case, including feasibility checks and where the main constraint sits.</p></div>
     <div class="sec-body"><div class="checks" id="checks"></div></div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (assessment)</h3><ul><li>The checks are rule-based screens. The 15% energy-penalty limit, the velocity bands and the £2.00/kg threshold are choices, not standards.</li><li>A passing check is not a feasibility conclusion. Structural design, routing, permits, safety cases and project-specific cost data are outside this model.</li></ul><div class="sens-table" id="sens-07"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-method">
@@ -351,9 +375,11 @@
         <li><b>Interpretations.</b> The pipeline efficiency factor multiplies the allowable pressure drop when computing hydraulic capacity. The 20 m/s (amber) and 30 m/s (red) velocity bands are screening choices, not a published standard. Discount rate is 7% nominal, an investor-rate assumption. For reference, Ofgem's final RIIO-3 gas WACC is 5.18% (semi-nominal, regulated network, low risk); no published UK hydrogen-pipeline investor hurdle rate was found, so 7% is a judgement to be replaced with a project's own rate. The capacity section length, leakage, OPEX and lifetime are still inherited defaults and are not independently sourced. The straight-line route length understates real routing; a 1.25 route factor raises the Teesside–London cost from £0.72 to £0.90/kg.</li>
         <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
         <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). Pipeline CAPEX is sourced (HyNet/Cadent, restated to 2026 and scaled to DN800). Ground temperature 10.6 °C is the BGS mean soil temperature (GR_999999/1, 2018). Design factor and SMYS are from IGEM/TD/1 Supplement 2 and API 5L. The overall heat-transfer coefficient (2 W/m²K), wall thickness (16 mm), bends per km and K per bend are assumptions; compressor and threshold values are placeholders in GBP.</li>
-        <li><b>Result sensitivity.</b> Because friction at this throughput drops pressure by well under 1 bar per 100 km, compression depends mainly on the pressure window. With a 66 bar source and 30 bar minimum, the UK default needs no compressor to 354 km; the gas is let down at the delivery end, and that pressure energy is not recovered.</li>
+        <li><b>Result sensitivity.</b> Friction at this throughput drops pressure by well under 1 bar per 100 km, so compression depends mainly on the pressure window. With a 66.2 bar source and a 39 bar delivery pressure, the UK default (460 km pipeline with route factor 1.30) needs no compressor; the gas arrives at about 64 bar. Source and delivery pressure within the tested ranges therefore change the UK headline by zero (see the sensitivity table). Pressure let-down at delivery is on hold and not costed.</li>
       </ul>
     </div>
+
+    <div class="uncert"><h3>Uncertainties and sensitivities (full register)</h3><ul><li>Model form: steady state, Darcy-Weisbach with Colebrook friction, NIST real-gas properties, Joule-Thomson and ground heat exchange, one compressor type. Not modelled: transient flow, line-pack, elevation, impurities, fatigue, let-down energy recovery (on hold), accidental release, repurposed-pipe derating, compressor motor losses.</li><li>Sources and status for every input are listed in the README register, with the year checked and the next review date.</li><li>The table below shows the levelised cost range for each input, one at a time, with the others at their current values. Interactions are not shown.</li></ul><div class="sens-table" id="sens-08"></div></div>
   </section>
 
   <footer class="colophon">
