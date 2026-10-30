@@ -245,8 +245,8 @@
         <div class="field"><label for="maxpen">Maximum energy penalty (%)</label><input type="number" id="maxpen" value="15"></div>
 
         <h3>Economics</h3>
-        <p class="note">Electricity default is the DESNZ Energy Trends Q4 2025 manufacturing price (16.8p/kWh, excluding CCL). CAPEX, compressor and threshold values are placeholders in GBP: replace them with sourced values or project quotes before use.</p>
-        <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="2150000"></div>
+        <p class="note">Electricity default is the DESNZ Energy Trends Q4 2025 manufacturing price (16.8p/kWh, excluding CCL). Pipeline CAPEX default £3.98m/km at DN800 (2026 money) is HyNet/Cadent's £1.63m/km for 18–24 inch (2021 money, Cadent project report), restated with CPI ×1.243 and scaled to DN800 with exponent 1.6. Discount rate 7% is an investor-rate assumption (see Method). Compressor and threshold values are still placeholders in GBP: replace them with sourced values or project quotes before use.</p>
+        <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="3983000"></div>
         <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.1" value="1.6"></div>
         <div class="field"><label for="refDn">Reference DN for CAPEX (mm)</label><input type="number" id="refDn" value="800"></div>
         <div class="field"><label for="compKw">Compressor CAPEX (£/kW)</label><input type="number" id="compKw" value="1030"></div>
@@ -330,9 +330,9 @@
         <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.45 kJ/kg·K and k = 1.417, divided by compressor efficiency.</li>
         <li><b>Cost.</b> (Pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
         <li><b>Leakage.</b> Routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
-        <li><b>Interpretations.</b> The pipeline efficiency factor multiplies the allowable pressure drop when computing hydraulic capacity. The 20 m/s (amber) and 30 m/s (red) velocity bands are screening choices, not a published standard. Station spacing, leakage, OPEX, WACC and lifetime are inherited defaults and are not independently sourced.</li>
+        <li><b>Interpretations.</b> The pipeline efficiency factor multiplies the allowable pressure drop when computing hydraulic capacity. The 20 m/s (amber) and 30 m/s (red) velocity bands are screening choices, not a published standard. Discount rate is 7% nominal, an investor-rate assumption. For reference, Ofgem's final RIIO-3 gas WACC is 5.18% (semi-nominal, regulated network, low risk); no published UK hydrogen-pipeline investor hurdle rate was found, so 7% is a judgement to be replaced with a project's own rate. Station spacing, leakage, OPEX and lifetime are still inherited defaults and are not independently sourced.</li>
         <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
-        <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). CAPEX, compressor and threshold values are placeholders in GBP. Compression is sized from the imposed pressure ratio, not from the hydraulic drop, so compressor power is a design choice; the hydraulic drop over one section is only about 1 bar at these flows.</li>
+        <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). Pipeline CAPEX is sourced (HyNet/Cadent, restated to 2026 and scaled to DN800); compressor and threshold values are placeholders in GBP. Compression is sized from the imposed pressure ratio, not from the hydraulic drop, so compressor power is a design choice; the hydraulic drop over one section is only about 1 bar at these flows.</li>
       </ul>
     </div>
   </section>
