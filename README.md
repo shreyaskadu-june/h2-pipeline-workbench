@@ -70,7 +70,7 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Asset life | 30 years | Assumption | — | Assumption |
 | Hub coordinates | Approximate | Public locations, not survey data | — | Approximate |
 | Route factor | 1.30 (range 1.20–1.40) | arXiv 2505.01124: literature detour factors 1.20–1.40; 1.30 is the paper's standard approach. Not UK-specific. | 2025 paper | Sourced range, not UK-specific |
-| Delivery pressure | 39 bar abs (38 barg) | Gas Governance OAD Section I: offtake pressure limit 38 barg. National Gas: NTS typically above 40 barg. Network tiers unverified. | Current | Sourced, partly |
+| Delivery pressure | 39 bar abs (38 barg) | Gas Governance OAD Section I: offtake pressure limit 38 barg. National Gas: NTS typically above 40 barg. DNV 2025 tiers: LTS above 7 barg; IP 2–7 barg; MP 75 mbar–2 barg; LP below 75 mbar. | 2025 | Sourced |
 | Design factor for hydrogen | 0.40 for X65 (0.50 X52, 0.43 X60, 0.37 X70) | IGEM/TD/1 Ed.6 Supplement 2, Table S1, as reproduced in the Cosham ICHEME paper. Check against the standard itself (it is paywalled). | Edition 6, Supplement 2 (edition date not verified) | Sourced |
 | SMYS by grade | X65 448 MPa (X52 359, X60 414, X70 483) | API 5L specified minimum yield strength | Standard | Sourced |
 | Ground temperature | 10.6 °C mean soil; 5.2–16 °C range at 1 m | British Geological Survey, GR_999999/1 (Ground Source Heat Pump, Basic) | 2018 | Sourced |

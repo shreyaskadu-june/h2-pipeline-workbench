@@ -403,7 +403,7 @@
       src: 'NTS typically above 40 barg (National Gas). High end is the derived MAOP for X65, 16 mm wall.' },
     { key: 'pdel', label: 'Delivery pressure (bar abs)', lo: 8, hi: 46, fmt: function (v) { return fmt(v, 1); },
       secs: ['03', '08'],
-      src: '39 bar abs = 38 barg offtake limit (Gas Governance OAD Section I). 8 bar abs is a low-pressure example; its basis is unverified.' },
+      src: '39 bar abs = 38 barg offtake limit (Gas Governance OAD Section I). 8 bar abs = 7 barg, the LTS lower limit (DNV 2025 pressure tiers: LTS above 7 barg; IP 2–7 barg; MP 75 mbar–2 barg; LP below 75 mbar).' },
     { key: 'dnMm', label: 'Diameter DN (mm)', lo: 700, hi: 900, fmt: function (v) { return fmt(v, 0); },
       secs: ['02', '03', '05', '08'],
       src: 'Design choice, not an input from a source.' },
