@@ -65,6 +65,12 @@
       return 'Source pressure must be above the minimum line pressure.';
     }
     if (p.wallMm <= 0) return 'Wall thickness must be positive.';
+    if (p.mode !== 'ratio' && (p.pin > 140 || p.pin < 5 || p.pdel < 5)) {
+      return 'Balance method pressures must be between 5 and 140 bar (the property table range).';
+    }
+    if (p.mode !== 'ratio' && (p.tC < -10 || p.tC > 50)) {
+      return 'Gas temperature must be between -10 and 50 °C (the property table range).';
+    }
     if (p.uW < 0) return 'Heat transfer coefficient cannot be negative.';
     if (p.eff <= 0 || p.eff > 1) return 'Pipeline efficiency must be between 0 and 1.';
     if (p.ceff <= 0 || p.ceff > 1) return 'Compressor efficiency must be between 0 and 1.';
@@ -202,11 +208,11 @@
       row('Pressure method', p.mode === 'ratio' ? 'Legacy imposed ratio' : 'Balance (compress when needed)') +
       row('Source pressure', fmt(p.pin, 1) + ' bar abs') +
       row('Delivered pressure', fmt(r.pDelivered, 1) + ' bar abs at ' + fmt(r.tDelivered, 1) + ' °C') +
-      row('Pressure let-down at delivery', fmt(r.letDownBar, 1) + ' bar (not recovered)') +
+      row('Pressure let-down at delivery', fmt(r.letDownBar, 1) + ' bar; up to ' + fmt(r.letDownMW, 1) + ' MW of pressure energy not recovered (ideal upper bound)') +
       row('Lowest pressure on the line', fmt(r.minPressureBar !== undefined ? r.minPressureBar : r.pDelivered, 1) + ' bar abs') +
       row('Maximum station ratio', fmt(r.ratio, 2)) +
       row('Compressor stations', r.stations + (r.stations > 0 ? ' (average power ' + fmt(r.stationMW, 2) + ' MW)' : '')) +
-      row('MAOP for grade and wall', fmt(r.maopBar, 1) + ' bar') +
+      row('MAOP for grade and wall', fmt(r.maopBar, 1) + ' bar (required wall at source pressure ' + fmt(r.requiredWallMm, 1) + ' mm)') +
       row('Hydraulic capacity (per section)', fmt(r.capacityMW, 0) + ' MW') +
       row('Net annual delivery', fmt(r.annualKt, 1) + ' kt/yr') +
       row('Break-even distance (threshold)', (H.breakEvenKm(p) === null ? 'below 50 km' : fmt(H.breakEvenKm(p), 0) + ' km'));
@@ -237,8 +243,8 @@
       ? check('ok', 'Delivery pressure met', 'Gas arrives at ' + fmt(r.pDelivered, 1) + ' bar, at or above the ' + fmt(p.pdel, 0) + ' bar minimum.')
       : check('warn', 'Delivery pressure below minimum', 'Gas arrives at ' + fmt(r.pDelivered, 1) + ' bar, below the ' + fmt(p.pdel, 0) + ' bar minimum. Raise the source pressure or add compression.');
     h += r.maopOk
-      ? check('ok', 'Source pressure within MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar is within the ' + fmt(r.maopBar, 1) + ' bar MAOP for ' + p.grade + ' and ' + fmt(p.wallMm, 1) + ' mm wall (design factor and SMYS per IGEM/TD/1 Supplement 2).')
-      : check('warn', 'Source pressure above MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar exceeds the ' + fmt(r.maopBar, 1) + ' bar MAOP for this grade and wall.');
+      ? check('ok', 'Source pressure within MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar is within the ' + fmt(r.maopBar, 1) + ' bar MAOP for ' + p.grade + ' and ' + fmt(p.wallMm, 1) + ' mm wall. The required wall at this pressure is ' + fmt(r.requiredWallMm, 1) + ' mm.')
+      : check('warn', 'Source pressure above MAOP', 'Source pressure ' + fmt(p.pin, 1) + ' bar exceeds the ' + fmt(r.maopBar, 1) + ' bar MAOP for this grade and wall. The required wall is ' + fmt(r.requiredWallMm, 1) + ' mm.');
     h += r.penaltyPct <= p.maxpen
       ? check('ok', 'Energy penalty is ' + fmt(r.penaltyPct, 1) + '%', 'Routine H₂ leakage is ' + fmt(r.leakMW, 2) + ' MW and recompression electricity is ' + fmt(r.compMW, 2) + ' MW. Pressure drop itself is not counted as destroyed chemical energy.')
       : check('warn', 'Energy penalty above ' + fmt(p.maxpen, 0) + '%', 'Penalty is ' + fmt(r.penaltyPct, 1) + '%, above the set maximum.');

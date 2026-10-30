@@ -33,7 +33,8 @@ Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pi
 - Hand check: for the UK default flow (8.33 kg/s, DN800, 177 km section), the Darcy gradient gives about 0.0038 bar/km, or about 0.7 bar per 177 km, which matches the marched result.
 - UK default (Teesside to London, 354 km, DN800, 1,000 MW, source 66.2 bar, minimum 30 bar, 7%, £168/MWh, CAPEX £3.98m/km at DN800 in 2026 money): no compressor is needed. The gas arrives at 64.8 bar and 10.6 °C and is let down to 30 bar at delivery (not recovered). Energy penalty 0.07%, CAPEX £1,410m, levelised cost £0.72/kg, break-even about 980 km at a £2.00/kg threshold.
 - Legacy ratio method for the same case: compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
-- Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, EUR inputs as first published): compression 12.1 MW, penalty 1.25%, CAPEX EUR 432m, LCO EUR 0.24/kg (legacy method). The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
+- Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, legacy ratio method, EUR): compression 12.14 MW and penalty 1.25% reproduce. With the current defaults and the €2.15m/km pipeline cost, CAPEX is €372m and LCO €0.22/kg at 7%. The earlier figures of €432m and €0.24/kg cannot be reproduced because the exact inputs were not recorded; treat them as superseded. The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
+- Limits found in the audit: the straight-line route length understates real routing (a 1.25 route factor raises the Teesside–London cost from £0.72 to £0.90/kg); the property table covers 5–140 bar and −10 to 50 °C and the app now rejects inputs outside it.
 
 ## Sources and yearly review
 
@@ -57,7 +58,7 @@ Every input that drives the answer is listed here with its source, or marked as 
 | SMYS by grade | X65 448 MPa (X52 359, X60 414, X70 483) | API 5L specified minimum yield strength | Standard | Sourced |
 | Ground temperature | 10.6 °C mean soil; 5.2–16 °C range at 1 m | British Geological Survey, GR_999999/1 (Ground Source Heat Pump, Basic) | 2018 | Sourced |
 | Overall heat transfer to ground | 2 W/m²K | Assumption; a sourced buried-pipeline value is still to be found | — | Assumption (small effect: about 4 K cooling over the route) |
-| Wall thickness | 16 mm | Assumption; sets MAOP (68.9 bar for X65 DN800) | — | Assumption |
+| Wall thickness | 16 mm | Input. Required wall at 66.2 bar for X65 DN800 is 15.3 mm (check shown in the app); MAOP 68.9 bar. | — | Assumption, checked against design factor |
 | Fitting losses | 0.1 bends per km, K = 0.45 each | Crane TP-410 long-radius 90° elbow K = 0.45 (as reproduced in a Neutrium table; check the Crane original). Bend count is an assumption. | — | Partly sourced |
 | Real-gas properties | Density, Z, viscosity, cp, k, Joule-Thomson coefficient | NIST via CoolProp 8.0.0 (`h2props.js`) | Current | Sourced |
 

@@ -65,6 +65,15 @@
 
   // Maximum allowable operating pressure (bar) from wall thickness and grade.
   // Hoop stress limit = design factor x SMYS; pressure = 2 t sigma / OD.
+  // Required wall thickness (mm) for source pressure p.pin at the grade's design factor:
+  // t = P ID / (2 (sigma - P)), with P and sigma in MPa.
+  function requiredWallMm(p) {
+    var g = GRADES[p.grade] || GRADES.X65;
+    var sigma = g.F * g.smys;
+    var P = p.pin / 10;
+    return sigma > P ? P * p.dnMm / (2 * (sigma - P)) : Infinity;
+  }
+
   function maopBar(p) {
     var g = GRADES[p.grade] || GRADES.X65;
     var od = p.dnMm + 2 * p.wallMm;
@@ -243,6 +252,9 @@
     var capMW = balanceCapacityMW(p, spacingKm);
     var maop = maopBar(p);
     var sectionKm = L / (n + 1);
+    var tDelK = route.tOut + 273.15;
+    var letDownMW = route.pOut > p.pdel
+      ? mGross * (8.314462618 / M_H2) * tDelK * Math.log(route.pOut / p.pdel) / 1e6 : 0;
     return finish(p, L, leakMW, deliveredMW, mGross, mDel, compMW, stationMW, n, sectionKm, capMW, {
       mode: 'balance',
       vIn: route.vIn, vAvg: route.vAvg, Re: route.Re, f: route.f, dPbar: route.dPbar,
@@ -250,7 +262,7 @@
       pDelivered: route.pOut, tDelivered: route.tOut, letDownBar: Math.max(0, route.pOut - p.pdel),
       minPressureBar: route.minPbar, deliveryOk: route.pOut >= p.pdel,
       pInlet: p.pin, pdel: p.pdel, maopBar: maop, maopOk: p.pin <= maop,
-      stationsCount: n
+      stationsCount: n, letDownMW: letDownMW, requiredWallMm: requiredWallMm(p)
     });
   }
 
@@ -273,7 +285,7 @@
       inletDensity: hyd.rhoIn, ratio: p.pin / p.pout,
       pDelivered: p.pout, tDelivered: p.tC, letDownBar: 0, deliveryOk: true,
       pInlet: p.pin, pdel: p.pout, maopBar: maopBar(p), maopOk: p.pin <= maopBar(p),
-      sectionDropBar: hyd.dPbar, stationsCount: n
+      sectionDropBar: hyd.dPbar, stationsCount: n, letDownMW: 0, requiredWallMm: requiredWallMm(p)
     });
   }
 
@@ -305,6 +317,7 @@
     frictionFactor: frictionFactor,
     props: props,
     maopBar: maopBar,
+    requiredWallMm: requiredWallMm,
     march: march,
     balanceStationMW: balanceStationMW,
     sectionStateRatio: sectionStateRatio,
