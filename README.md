@@ -1,6 +1,8 @@
-# Hydrogen Pipeline Techno-Economic Workbench
+# UK Hydrogen Pipeline Techno-Economic Workbench
 
-A static, browser-only screening calculator for hydrogen pipeline route feasibility, levelised transport cost, compression duty, energy penalty and line inventory.
+A static, browser-only screening calculator for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty, energy penalty and line inventory for UK corridors (Teesside, HyNet, Humber, Milford Haven, Grangemouth, London).
+
+Currency is GBP. Cost inputs are placeholders; replace them with current UK sources before use.
 
 Open `index.html` in a browser, or see the GitHub Pages site for this repository.
 
@@ -23,7 +25,7 @@ Transient flow, elevation, fittings, impurities, fatigue life, repurposed-pipeli
 
 ## Checks
 
-With the default inputs (Rotterdam Maasvlakte to Geleen, DN800, 1,000 MW, 167 km) the model gives: delivered 999.7 MW, compression 11.85 MW, penalty 1.2%, CAPEX EUR 431.7m, levelised cost EUR 0.24/kg, and break-even about 1,390 km. The hydraulic capacity is 6,380 MW against 6,032 MW in the reference workbench; the difference is in the efficiency treatment of the allowable pressure drop.
+The model is the same as the reference workbench. With the Rotterdam-Geleen preset and the original EUR inputs it gives: delivered 999.7 MW, compression 11.85 MW, penalty 1.2%, CAPEX EUR 431.7m, levelised cost EUR 0.24/kg, break-even about 1,390 km. The default UK case (Teesside to London, GBP inputs) is in the UI. The hydraulic capacity is 6,380 MW against 6,032 MW in the reference workbench; the difference is in the efficiency treatment of the allowable pressure drop.
 
 ## Dependencies (loaded from CDN)
 

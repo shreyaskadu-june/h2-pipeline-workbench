@@ -4,13 +4,31 @@
   var H = window.H2Model;
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (x, d) { return Number(x).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d }); };
-  var eur = function (x, d) { return 'EUR ' + fmt(x, d === undefined ? 2 : d); };
+  var eur = function (x, d) { return '£' + fmt(x, d === undefined ? 2 : d); };
   var css = function (name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); };
 
-  var DEFAULT_ROUTE = {
-    srcName: 'Rotterdam Maasvlakte', srcLat: 51.955, srcLon: 3.980,
-    sinkName: 'Geleen (Chemelot)', sinkLat: 50.975, sinkLon: 5.810, routeKm: 167
-  };
+  // UK hydrogen corridor presets. Coordinates are approximate hub locations.
+  // Route length is the straight-line distance (route factor 1.0), editable in the form.
+  var PRESETS = [
+    { key: 'teesside-london', label: 'Teesside to London (demand)',
+      srcName: 'Teesside hub', srcLat: 54.60, srcLon: -1.15,
+      sinkName: 'London (demand)', sinkLat: 51.51, sinkLon: 0.10 },
+    { key: 'hynet-humber', label: 'HyNet (Stanlow) to Humber',
+      srcName: 'HyNet (Stanlow)', srcLat: 53.27, srcLon: -2.80,
+      sinkName: 'Humber (Killingholme)', sinkLat: 53.62, sinkLon: -0.20 },
+    { key: 'milford-london', label: 'Milford Haven to London',
+      srcName: 'Milford Haven', srcLat: 51.71, srcLon: -5.03,
+      sinkName: 'London (demand)', sinkLat: 51.51, sinkLon: 0.10 },
+    { key: 'grangemouth-teesside', label: 'Grangemouth to Teesside',
+      srcName: 'Grangemouth', srcLat: 56.01, srcLon: -3.72,
+      sinkName: 'Teesside hub', sinkLat: 54.60, sinkLon: -1.15 }
+  ];
+
+  function presetRoute(pr) {
+    var km = Math.round(haversineKm(pr.srcLat, pr.srcLon, pr.sinkLat, pr.sinkLon));
+    return { srcName: pr.srcName, srcLat: pr.srcLat, srcLon: pr.srcLon,
+             sinkName: pr.sinkName, sinkLat: pr.sinkLat, sinkLon: pr.sinkLon, routeKm: km };
+  }
 
   var state = { map: null, srcMarker: null, sinkMarker: null, line: null, mode: null, charts: {} };
 
@@ -92,7 +110,7 @@
     if (!state.srcMarker) {
       state.srcMarker = L.marker(s, { title: 'Source' }).addTo(state.map);
       state.sinkMarker = L.marker(t, { title: 'Sink' }).addTo(state.map);
-      state.line = L.polyline([s, t], { color: '#4aa8ff', weight: 4, opacity: 0.85 }).addTo(state.map);
+      state.line = L.polyline([s, t], { color: '#5aa9e6', weight: 4, opacity: 0.85 }).addTo(state.map);
     } else {
       state.srcMarker.setLatLng(s); state.sinkMarker.setLatLng(t); state.line.setLatLngs([s, t]);
     }
@@ -149,7 +167,7 @@
   function scenarioRow(name, q) {
     var r = H.evaluate(q);
     return '<tr><td>' + name + '</td><td>' + fmt(r.deliveredMW, 0) + ' MW</td><td>' +
-      fmt(r.coverage * 100, 0) + '%</td><td>' + eur(r.lco) + '/kg</td><td>EUR ' + fmt(r.capex / 1e6, 1) + 'm</td></tr>';
+      fmt(r.coverage * 100, 0) + '%</td><td>' + eur(r.lco) + '/kg</td><td>£' + fmt(r.capex / 1e6, 1) + 'm</td></tr>';
   }
 
   function renderScenarios(p) {
@@ -175,12 +193,12 @@
       row('Net annual delivery', fmt(r.annualKt, 1) + ' kt/yr') +
       row('Break-even distance (threshold)', (H.breakEvenKm(p) === null ? 'below 50 km' : fmt(H.breakEvenKm(p), 0) + ' km'));
     $('comTable').innerHTML =
-      row('Compressor electricity cost', 'EUR ' + fmt(r.elecCost / 1e6, 1) + 'm/yr') +
-      row('Fixed OPEX', 'EUR ' + fmt(r.fixedOpex / 1e6, 1) + 'm/yr') +
-      row('Annualised CAPEX', 'EUR ' + fmt(r.annualCapex / 1e6, 1) + 'm/yr') +
-      row('Total annual cost', 'EUR ' + fmt(r.totalAnnual / 1e6, 1) + 'm/yr') +
-      row('Pipeline CAPEX', 'EUR ' + fmt(r.pipeCapex / 1e6, 1) + 'm') +
-      row('Compressor CAPEX', 'EUR ' + fmt(r.compCapex / 1e6, 1) + 'm') +
+      row('Compressor electricity cost', '£' + fmt(r.elecCost / 1e6, 1) + 'm/yr') +
+      row('Fixed OPEX', '£' + fmt(r.fixedOpex / 1e6, 1) + 'm/yr') +
+      row('Annualised CAPEX', '£' + fmt(r.annualCapex / 1e6, 1) + 'm/yr') +
+      row('Total annual cost', '£' + fmt(r.totalAnnual / 1e6, 1) + 'm/yr') +
+      row('Pipeline CAPEX', '£' + fmt(r.pipeCapex / 1e6, 1) + 'm') +
+      row('Compressor CAPEX', '£' + fmt(r.compCapex / 1e6, 1) + 'm') +
       row('Levelised transport cost', eur(r.lco) + '/kg') +
       row('Energy penalty', fmt(r.penaltyPct, 2) + '%');
   }
@@ -212,7 +230,7 @@
   }
 
   function chartDefaults() {
-    var muted = css('--muted') || '#8ea3b8', line = css('--line') || '#1f3347';
+    var muted = css('--muted') || '#8fa6b9', line = css('--line') || '#1d3550';
     if (window.Chart) {
       Chart.defaults.color = muted;
       Chart.defaults.borderColor = line;
@@ -235,7 +253,7 @@
   function renderCharts(p, r) {
     if (!window.Chart) return;
     var c = chartDefaults();
-    var blue = '#4aa8ff', green = '#50d59a', amber = '#f0b44c', red = '#ef6461';
+    var blue = '#5aa9e6', green = '#2ec4b6', amber = '#f2b24b', red = '#e8635c';
 
     // 1) Energy journey vs length
     var lens = [], chem = [], h2 = [], net = [];
@@ -288,13 +306,13 @@
     makeOrUpdate('cost', 'chartCost', {
       type: 'line',
       data: { labels: cl, datasets: [
-        { label: 'Levelised transport cost (EUR/kg)', data: cv, borderColor: amber, pointRadius: 0, borderWidth: 2.5 },
-        { label: 'Threshold (EUR/kg)', data: tl, borderColor: red, borderDash: [6, 4], pointRadius: 0, borderWidth: 2 }
+        { label: 'Levelised transport cost (£/kg)', data: cv, borderColor: amber, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Threshold (£/kg)', data: tl, borderColor: red, borderDash: [6, 4], pointRadius: 0, borderWidth: 2 }
       ] },
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
         scales: { x: { title: { display: true, text: 'Distance (km)' }, ticks: { maxTicksLimit: 12 } },
-                  y: { title: { display: true, text: 'EUR/kg' }, beginAtZero: true } } }
+                  y: { title: { display: true, text: '£/kg' }, beginAtZero: true } } }
     });
   }
 
@@ -317,8 +335,8 @@
     $('kHeadroom').textContent = (head >= 0 ? 'Headroom to threshold: ' : 'Over threshold by: ') + eur(Math.abs(head)) + '/kg';
     $('kComp').innerHTML = fmt(r.compMW, 2) + ' <small>MW</small>';
     $('kSections').textContent = r.stations + ' repeated pressure section' + (r.stations === 1 ? '' : 's');
-    $('kCapex').innerHTML = 'EUR ' + fmt(r.capex / 1e6, 1) + '<small>m</small>';
-    $('kAnnual').textContent = 'annualised EUR ' + fmt(r.annualCapex / 1e6, 1) + 'm/yr';
+    $('kCapex').innerHTML = '£' + fmt(r.capex / 1e6, 1) + '<small>m</small>';
+    $('kAnnual').textContent = 'annualised £' + fmt(r.annualCapex / 1e6, 1) + 'm/yr';
     $('kPenalty').innerHTML = fmt(r.penaltyPct, 1) + '%';
     $('kPenaltyNote').textContent = fmt(r.leakMW, 2) + ' MW leakage + ' + fmt(r.compMW, 2) + ' MW compression';
 
@@ -337,7 +355,7 @@
   }
 
   function init() {
-    setRouteFields(DEFAULT_ROUTE);
+    setRouteFields(presetRoute(PRESETS[0]));
     initMap();
     $('recalc').addEventListener('click', render);
     $('applyRoute').addEventListener('click', function () {
@@ -346,7 +364,17 @@
       state.fitted = false; drawMap(); render();
     });
     $('resetRoute').addEventListener('click', function () {
-      setRouteFields(DEFAULT_ROUTE); state.fitted = false; drawMap(); render();
+      setRouteFields(presetRoute(PRESETS[Number($('preset').value) || 0]));
+      state.fitted = false; drawMap(); render();
+    });
+    var sel = $('preset');
+    PRESETS.forEach(function (pr, i) {
+      var o = document.createElement('option');
+      o.value = i; o.textContent = pr.label; sel.appendChild(o);
+    });
+    sel.addEventListener('change', function () {
+      setRouteFields(presetRoute(PRESETS[Number(sel.value)]));
+      state.fitted = false; drawMap(); render();
     });
     $('swap').addEventListener('click', function () {
       var r = routeFromFields();

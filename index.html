@@ -3,27 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hydrogen Pipeline Techno-Economic Workbench</title>
-<meta name="description" content="Screening calculator for hydrogen pipeline route feasibility, transport cost, compression duty and line inventory.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%2350d59a'/%3E%3C/svg%3E">
+<title>UK Hydrogen Pipeline Techno-Economic Workbench</title>
+<meta name="description" content="UK screening calculator for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty and line inventory for industrial hubs.">
+<meta name="theme-color" content="#07141f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%232ec4b6'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b1622;
-    --panel: #111f2e;
-    --panel-2: #0f1b29;
-    --line: #1f3347;
-    --text: #e6eef7;
-    --muted: #8ea3b8;
-    --accent: #50d59a;
-    --accent-ink: #062316;
-    --blue: #4aa8ff;
-    --amber: #f0b44c;
-    --red: #ef6461;
-    --grey: #5b6b7c;
-    --ok: #50d59a;
-    --warn: #f0b44c;
+    --bg: #07141f;
+    --panel: #0e2033;
+    --panel-2: #0b1a2a;
+    --line: #1d3550;
+    --text: #e8f1f7;
+    --muted: #8fa6b9;
+    --accent: #2ec4b6;
+    --accent-ink: #04201e;
+    --blue: #5aa9e6;
+    --amber: #f2b24b;
+    --red: #e8635c;
+    --grey: #5b6f82;
+    --ok: #35d39a;
+    --warn: #f2b24b;
   }
   color-scheme: dark;
   * { box-sizing: border-box; }
@@ -35,7 +36,7 @@
   }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
   header.hero {
-    background: linear-gradient(135deg, #0f2236 0%, #0b1622 100%);
+    background: linear-gradient(135deg, #0c2a3a 0%, #07141f 100%);
     border: 1px solid var(--line); border-radius: 14px;
     padding: 22px 24px; display: flex; flex-wrap: wrap; gap: 16px;
     justify-content: space-between; align-items: center;
@@ -47,7 +48,7 @@
     display: flex; align-items: center; gap: 10px; background: var(--panel-2);
     border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
   }
-  .route-pill .tag { background: #1b3a2f; color: var(--accent); border-radius: 6px; padding: 2px 8px; font-weight: 600; font-size: 12px; }
+  .route-pill .tag { background: #0f3b3a; color: var(--accent); border-radius: 6px; padding: 2px 8px; font-weight: 600; font-size: 12px; }
   button {
     font: inherit; cursor: pointer; border-radius: 9px; border: 1px solid var(--line);
     background: var(--panel-2); color: var(--text); padding: 8px 12px;
@@ -93,7 +94,7 @@
   th, td { padding: 8px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
   th { color: var(--muted); font-weight: 600; }
   td.cell { text-align: center; border-radius: 6px; line-height: 1.25; }
-  .cell.pass { background: rgba(80,213,154,.16); color: var(--ok); }
+  .cell.pass { background: rgba(46,196,182,.16); color: var(--ok); }
   .cell.cond { background: rgba(240,180,76,.16); color: var(--amber); }
   .cell.limit { background: rgba(91,107,124,.30); color: var(--muted); }
   .cell.fail { background: rgba(239,100,97,.14); color: var(--red); }
@@ -103,7 +104,7 @@
   .checks { display: grid; gap: 10px; margin-top: 10px; }
   .check { display: grid; grid-template-columns: 58px 1fr; gap: 12px; padding: 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
   .badge { font-size: 11px; font-weight: 700; border-radius: 999px; text-align: center; padding: 4px 0; height: fit-content; }
-  .badge.ok { background: rgba(80,213,154,.18); color: var(--ok); }
+  .badge.ok { background: rgba(46,196,182,.18); color: var(--ok); }
   .badge.warn { background: rgba(240,180,76,.18); color: var(--warn); }
   .check h4 { margin: 0 0 2px; font-size: 13.5px; }
   .check p { margin: 0; color: var(--muted); font-size: 12.5px; }
@@ -135,12 +136,12 @@
 
   <header class="hero">
     <div>
-      <div class="eyebrow">Hydrogen pipeline planning</div>
+      <div class="eyebrow">UK hydrogen pipeline planning · GBP</div>
       <h1>Techno-Economic Workbench</h1>
-      <div class="sub">Screen route feasibility, transport cost, compression load and line inventory for transmission-scale hydrogen corridors.</div>
+      <div class="sub">Screen route feasibility, transport cost, compression load and line inventory for transmission-scale hydrogen corridors between UK industrial clusters and demand centres.</div>
     </div>
     <div class="route-pill">
-      <span id="routeName">Rotterdam Maasvlakte to Geleen (Chemelot)</span>
+      <span id="routeName">Teesside hub to London (demand)</span>
       <span class="tag" id="routeKm">167 km</span>
       <button class="primary" id="recalc" type="button">Recalculate</button>
     </div>
@@ -159,7 +160,8 @@
     <!-- Sidebar: inputs -->
     <aside class="card" aria-label="Inputs">
       <h2 class="panel-title">Route definition</h2>
-      <p class="panel-desc">Click a terminal button, then click the map to place it. Or enter coordinates below.</p>
+      <p class="panel-desc">Choose a UK corridor, click a terminal button and then the map to place a custom one, or enter coordinates below.</p>
+      <div class="field" style="grid-template-columns: 1fr"><label for="preset">UK corridor preset</label><select id="preset"></select></div>
       <div class="btn-row" style="margin-top:0">
         <button id="setSrc" type="button">Place source</button>
         <button id="setSink" type="button">Place sink</button>
@@ -215,15 +217,15 @@
       <div class="group">
         <h3 class="panel-title" style="font-size:14px">Economics</h3>
         <p class="panel-desc">CAPEX scales with diameter; annualised with CRF; transport cost includes fixed OPEX and compressor electricity.</p>
-        <div class="field"><label for="capKm">Pipeline CAPEX (EUR/km)</label><input type="number" id="capKm" value="2500000"></div>
+        <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="2150000"></div>
         <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.1" value="1.6"></div>
         <div class="field"><label for="refDn">Reference DN for CAPEX (mm)</label><input type="number" id="refDn" value="800"></div>
-        <div class="field"><label for="compKw">Compressor CAPEX (EUR/kW)</label><input type="number" id="compKw" value="1200"></div>
+        <div class="field"><label for="compKw">Compressor CAPEX (£/kW)</label><input type="number" id="compKw" value="1030"></div>
         <div class="field"><label for="opex">OPEX (% of CAPEX per year)</label><input type="number" id="opex" step="0.1" value="4"></div>
-        <div class="field"><label for="elec">Electricity (EUR/MWh)</label><input type="number" id="elec" value="60"></div>
+        <div class="field"><label for="elec">Electricity (£/MWh)</label><input type="number" id="elec" value="70"></div>
         <div class="field"><label for="life">Lifetime (years)</label><input type="number" id="life" value="30"></div>
         <div class="field"><label for="wacc">WACC (%)</label><input type="number" id="wacc" step="0.1" value="7"></div>
-        <div class="field"><label for="thr">Threshold transport cost (EUR/kg)</label><input type="number" id="thr" step="0.1" value="2.0"></div>
+        <div class="field"><label for="thr">Threshold transport cost (£/kg)</label><input type="number" id="thr" step="0.1" value="2.0"></div>
         <div class="err" id="inputErr" role="alert"></div>
       </div>
     </aside>
@@ -301,13 +303,14 @@
         <li><b style="color:var(--text)">Cost:</b> (pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
         <li><b style="color:var(--text)">Leakage:</b> routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
       </ul>
+      <div class="note-box"><b style="color:var(--text)">UK defaults:</b> the CAPEX, compressor, electricity and threshold inputs are placeholders in GBP, not current UK market data. Replace them with current values from your own sources (for example DESNZ cost reports, Ofgem and NESO price data, or project-specific quotes) before relying on any output.</div>
       <div class="note-box"><b style="color:var(--text)">Research guardrail:</b> dedicated and repurposed pipelines are not assumed equivalent. This page models dedicated H₂ only. Accidental buried-pipeline leaks and their consequences are outside the routine-loss model.</div>
     </section>
   </div>
 
   <footer>
     <div>Hydrogen Pipeline Techno-Economic Workbench. Screening model for planning discussions. Not a design basis and not investment advice.</div>
-    <div>Author: Shreyas Kadu. Built with Leaflet and Chart.js. Map tiles © OpenStreetMap contributors.</div>
+    <div>Author: Shreyas Kadu. Built with Leaflet and Chart.js. Map tiles © OpenStreetMap contributors. Hub locations are approximate.</div>
   </footer>
 </div>
 
