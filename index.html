@@ -274,9 +274,9 @@
         <div class="field"><label for="maxpen">Maximum energy penalty (%)</label><input type="number" id="maxpen" value="15"></div>
 
         <h3>Economics</h3>
-        <p class="note">Electricity default is the DESNZ Energy Trends Q4 2025 manufacturing price (16.8p/kWh, excluding CCL). Pipeline CAPEX default £3.98m/km at DN800 (2026 money) is HyNet/Cadent's £1.63m/km for 18–24 inch (2021 money, Cadent project report), restated with CPI ×1.243 and scaled to DN800 with exponent 1.6. Discount rate 7% is an investor-rate assumption (see Method). Compressor and threshold values are still placeholders in GBP: replace them with sourced values or project quotes before use.</p>
-        <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="3983000"></div>
-        <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.1" value="1.6"></div>
+        <p class="note">Electricity default is the DESNZ Energy Trends Q4 2025 manufacturing price (16.8p/kWh, excluding CCL). Pipeline CAPEX default £3.11m/km at DN800 (2026 money) is HyNet/Cadent's £1.63m/km for 18–24 inch (2021 money, Cadent project report), restated with CPI ×1.243 and scaled from DN525 to DN800 with exponent 1.02, the log-log slope of the Brown et al. (2022) US average equations over 20.7–31.5 inch. Discount rate 7% is an investor-rate assumption (see Method). Compressor and threshold values are still placeholders in GBP: replace them with sourced values or project quotes before use.</p>
+        <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="3114245"></div>
+        <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.01" value="1.02"></div>
         <div class="field"><label for="refDn">Reference DN for CAPEX (mm)</label><input type="number" id="refDn" value="800"></div>
         <div class="field"><label for="compKw">Compressor CAPEX (£/kW)</label><input type="number" id="compKw" value="1030"></div>
         <div class="field"><label for="opex">Fixed OPEX (% of CAPEX/yr)</label><input type="number" id="opex" step="0.1" value="4"></div>
@@ -288,7 +288,7 @@
       <div class="err" id="inputErr" role="alert"></div>
     </div>
 
-    <div class="uncert"><h3>Uncertainties and sensitivities (specification)</h3><ul><li>Hydraulics: roughness, gas temperature, heat transfer to ground, bends and fitting losses are assumptions or from one source each; their effect on cost is small at this flow (see table).</li><li>Pressures: source pressure is limited by MAOP, which depends on the grade and wall. The wall (16 mm) is an assumption; the required wall at 66.2 bar is 15.3 mm.</li><li>Delivery pressure: 39 bar absolute (38 barg), from the OAD Section I offtake limit. Its effect on the UK default is small because the line does not need compression.</li><li>Supply and losses: leakage (0.2%/1000 km) is not sourced. Utilisation (90%) is an assumption based on an 8,000 h/yr carrier study.</li><li>Economics: CAPEX, diameter exponent (1.6, assumed), WACC, OPEX (4%), electricity (£168/MWh, DESNZ Q4 2025) and asset life (30 years) each carry uncertainty; the table shows the cost range for each.</li></ul><div class="sens-table" id="sens-03"></div></div>
+    <div class="uncert"><h3>Uncertainties and sensitivities (specification)</h3><ul><li>Hydraulics: roughness, gas temperature, heat transfer to ground, bends and fitting losses are assumptions or from one source each; their effect on cost is small at this flow (see table).</li><li>Pressures: source pressure is limited by MAOP, which depends on the grade and wall. The wall (16 mm) is an assumption; the required wall at 66.2 bar is 15.3 mm.</li><li>Delivery pressure: 39 bar absolute (38 barg), from the OAD Section I offtake limit. Its effect on the UK default is small because the line does not need compression.</li><li>Supply and losses: leakage (0.2%/1000 km) is not sourced. Utilisation (90%) is an assumption based on an 8,000 h/yr carrier study.</li><li>Economics: CAPEX, diameter exponent (1.02, Brown et al. 2022 slope; range 0.9–1.3), WACC, OPEX (4%), electricity (£168/MWh, DESNZ Q4 2025) and asset life (30 years) each carry uncertainty; the table shows the cost range for each.</li></ul><div class="sens-table" id="sens-03"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-profiles">
@@ -347,7 +347,7 @@
       </div>
     </div>
 
-    <div class="uncert"><h3>Uncertainties and sensitivities (scenarios)</h3><ul><li>Utilisation and source size change cost per kg through the fixed annual charges.</li><li>DN changes CAPEX non-linearly through the diameter exponent (assumed 1.6), so DN scenarios depend on that exponent.</li><li>Corridor scenarios use the same route factor as the base case.</li></ul><div class="sens-table" id="sens-06"></div></div>
+    <div class="uncert"><h3>Uncertainties and sensitivities (scenarios)</h3><ul><li>Utilisation and source size change cost per kg through the fixed annual charges.</li><li>DN changes CAPEX through the diameter exponent (1.02, from Brown et al. 2022). Brown's slope is 0.86 for 4–12 inch and rises to 1.07 for 36–48 inch, so DN scenarios outside 500–900 mm depend more on that exponent.</li><li>Corridor scenarios use the same route factor as the base case.</li></ul><div class="sens-table" id="sens-06"></div></div>
   </section>
 
   <section class="sec" aria-labelledby="s-assess">

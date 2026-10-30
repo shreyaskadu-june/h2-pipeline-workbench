@@ -29,11 +29,11 @@ Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pi
 ## Checks
 
 - The balance calculation was re-derived independently in Python with CoolProp properties evaluated directly (no lookup table). Delivered pressure and compression agree with the JavaScript for the cases tested (UK default, 1000 km, 45 bar source at 354 km and 3000 km).
-- The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.87/kg at 354 km with no route factor.
+- The legacy ratio method reproduces the earlier results: UK default compression 24.28 MW, LCO £0.71/kg at 354 km with no route factor on the current CAPEX basis (£0.87/kg on the previous basis).
 - Hand check: for the UK default flow (8.33 kg/s, DN800, 177 km section), the Darcy gradient gives about 0.0038 bar/km, or about 0.7 bar per 177 km, which matches the marched result.
-- UK default (Teesside to London: 354 km straight line × route factor 1.30 = 460 km; DN800; 1,000 MW; source 66.2 bar; delivery 39 bar abs; 7%; £168/MWh; CAPEX £3.98m/km at DN800 in 2026 money): no compressor is needed. Gas arrives at 64.4 bar and 10.6 °C. Energy penalty 0.09%, CAPEX £1,833m, levelised cost £0.94/kg, net 236 kt/yr, break-even about 980 km of pipeline (route length) at a £2.00/kg threshold.
-- Without the route factor (354 km), the same case gives £0.72/kg.
-- Legacy ratio method for the same 354 km case: compression 24.3 MW, penalty 2.5%, CAPEX £1,435m, levelised cost £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
+- UK default (Teesside to London: 354 km straight line × route factor 1.30 = 460 km; DN800; 1,000 MW; source 66.2 bar; delivery 39 bar abs; 7%; £168/MWh; CAPEX £3.11m/km at DN800 in 2026 money): no compressor is needed. Gas arrives at 64.4 bar and 10.6 °C. Energy penalty 0.09%, CAPEX £1,433m, levelised cost £0.73/kg, net 236 kt/yr, break-even about 1,250 km of pipeline (route length) at a £2.00/kg threshold.
+- Without the route factor (354 km), the same case gives £0.56/kg.
+- Legacy ratio method for the same 354 km case: compression 24.3 MW, penalty 2.5%, CAPEX £1,127m, levelised cost £0.71/kg. On the previous CAPEX basis (exponent 1.6, £3.98m/km) the same case gave £1,435m and £0.87/kg. The legacy method imposes a 2.2× ratio at each station, which friction does not require at this flow.
 - Reference case (Rotterdam–Geleen, DN800, 1,000 MW, 167 km, legacy ratio method, EUR): compression 12.14 MW and penalty 1.25% reproduce. With the current defaults and the €2.15m/km pipeline cost, CAPEX is €372m and LCO €0.22/kg at 7%. The earlier figures of €432m and €0.24/kg cannot be reproduced because the exact inputs were not recorded; treat them as superseded. The hydraulic capacity is about 6,300 MW, not the 6,032 MW shown in the earlier reference.
 - Route factor: the literature range is 1.20–1.40 (arXiv 2505.01124). It covers bends, deviations and detours. It does not cover vertical rise, river or road crossings, or special works.
 - Delivery pressure: 39 bar abs (38 barg) follows the Gas Governance OAD Section I offtake limit. National Gas states the NTS typically operates above 40 barg. The lower-pressure network tiers could not be verified from the sources checked.
@@ -43,9 +43,10 @@ Transient flow and line-pack, elevation, impurities, fatigue life, repurposed-pi
 
 Each section of the app lists its own uncertainties and shows a live one-at-a-time sensitivity table. Section 08 holds the full table with a source and status for each input. Headline swings for the UK default (levelised cost, £/kg):
 
-- Route factor 1.10–1.40: £0.79 to £1.01 (swing £0.22).
-- Pipeline CAPEX ±30%: £0.65 to £1.22 (swing £0.56).
-- Discount rate 5.18–9%: £0.83 to £1.06 (swing £0.24).
+- Route factor 1.10–1.40: £0.62 to £0.79 (swing £0.17).
+- Pipeline CAPEX ±30%: £0.51 to £0.95 (swing £0.44).
+- Discount rate 5.18–9%: £0.65 to £0.83 (swing £0.19).
+- Diameter exponent 0.9–1.3: zero swing at DN800, because DN800 is the CAPEX anchor. Outside DN800 it matters: DN700 gives £0.64/kg and DN900 gives £0.82/kg at the default exponent.
 - Electricity, source pressure, delivery pressure: zero swing for the UK default, because no compressor is needed in the tested ranges.
 - Diameter DN 700–900 mm, diameter exponent, and the other inputs: see the table in section 08.
 
@@ -58,7 +59,7 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Input | Default | Source | Source year | Status |
 |---|---|---|---|---|
 | Electricity price | £168/MWh (16.8p/kWh) | DESNZ Energy Trends, manufacturing, excl. CCL | Q4 2025 | Sourced |
-| Pipeline CAPEX | £3.98m/km at DN800 | Cadent/HyNet report: £178m for 109 km, i.e. £1.63m/km for 18–24 inch (2021 money). Restated ×1.243 to 2026 using ONS CPI 2021→2026 (2026 partly forecast). Scaled to DN800 with exponent 1.6. | 2021 base, 2026 restated | Sourced, with an assumed diameter exponent |
+| Pipeline CAPEX | £3.11m/km at DN800 | Cadent/HyNet report: £178m for 109 km, i.e. £1.63m/km for 18–24 inch (2021 money). Restated ×1.243 to 2026 using ONS CPI 2021→2026 (2026 partly forecast). Scaled from DN525 to DN800 with exponent 1.02 (Brown et al. 2022 US slope, NETL H2_P_COM workbook VBA). | 2021 base, 2026 restated | Sourced level; exponent sourced from US equations (level and shape are not the same basis) |
 | Discount rate | 7% | Investor-rate assumption. Ofgem final RIIO-3 gas WACC is 5.18% (semi-nominal, regulated) and is shown as the low benchmark. No published UK hydrogen-pipeline investor hurdle rate was found. | 2025 benchmark | Assumption |
 | LHV, density, viscosity, cp, k | 119.96 MJ/kg; 5.35 kg/m³; 8.76 µPa·s; 14.45 kJ/kg·K; 1.417 | NIST (via CoolProp) | Current | Sourced |
 | Compressor CAPEX | £1,030/kW | Placeholder; DESNZ gives £80k per unit at an unstated size | — | Unsourced |
