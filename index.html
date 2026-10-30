@@ -168,15 +168,12 @@
   .intro { max-width: 68ch; padding: 22px 0 4px; font-size: 15px; line-height: 1.6; }
   .intro p { margin: 0; }
   /* Motion. Only enabled when scripts run; reduced-motion users get none (see below). */
-  html.js section.sec { opacity: 0; transform: translateY(10px); transition: opacity .5s ease, transform .5s ease; }
-  html.js section.sec.in { opacity: 1; transform: none; }
   .figure.pulse { animation: figPulse .45s ease-out; }
   @keyframes figPulse { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   .btn { transition: transform .12s ease, background-color .2s ease, color .2s ease; }
   .btn:active { transform: translateY(1px) scale(.98); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
-    html.js section.sec { opacity: 1; transform: none; }
   }
 </style>
 </head>
