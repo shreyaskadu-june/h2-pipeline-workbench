@@ -4,313 +4,341 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UK Hydrogen Pipeline Techno-Economic Workbench</title>
-<meta name="description" content="UK screening calculator for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty and line inventory for industrial hubs.">
-<meta name="theme-color" content="#07141f">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%232ec4b6'/%3E%3C/svg%3E">
+<meta name="description" content="UK screening data sheet for hydrogen pipeline route feasibility, levelised transport cost (GBP/kg), compression duty and line inventory for industrial hubs.">
+<meta name="theme-color" content="#f3efe6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23c8452c'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07141f;
-    --panel: #0e2033;
-    --panel-2: #0b1a2a;
-    --line: #1d3550;
-    --text: #e8f1f7;
-    --muted: #8fa6b9;
-    --accent: #2ec4b6;
-    --accent-ink: #04201e;
-    --blue: #5aa9e6;
-    --amber: #f2b24b;
-    --red: #e8635c;
-    --grey: #5b6f82;
-    --ok: #35d39a;
-    --warn: #f2b24b;
+    --paper: #f3efe6;
+    --paper-2: #ebe6da;
+    --ink: #1b1b1b;
+    --ink-2: #3d3b36;
+    --muted: #6d675c;
+    --rule: #1b1b1b;
+    --hair: #cfc8b8;
+    --accent: #c8452c;
+    --accent-ink: #fbf8f1;
+    --pass-bg: #dfe8dc; --pass-ink: #1f4d33;
+    --cond-bg: #f1e4bd; --cond-ink: #5f4a12;
+    --limit-bg: #e3dfd4; --limit-ink: #5a564c;
+    --fail-bg: #f4d9cf; --fail-ink: #8a2a16;
+    --ok-ink: #1f4d33;
+    --warn-ink: #8a2a16;
   }
-  color-scheme: dark;
+  color-scheme: light;
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
+  html, body { margin: 0; background: var(--paper); }
   body {
-    background: var(--bg); color: var(--text);
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px; line-height: 1.45;
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.5;
   }
-  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
-  header.hero {
-    background: linear-gradient(135deg, #0c2a3a 0%, #07141f 100%);
-    border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px 24px; display: flex; flex-wrap: wrap; gap: 16px;
-    justify-content: space-between; align-items: center;
-  }
-  .eyebrow { color: var(--accent); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
-  h1 { margin: 6px 0 4px; font-size: 26px; letter-spacing: -.01em; }
-  .sub { color: var(--muted); max-width: 680px; }
-  .route-pill {
-    display: flex; align-items: center; gap: 10px; background: var(--panel-2);
-    border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
-  }
-  .route-pill .tag { background: #0f3b3a; color: var(--accent); border-radius: 6px; padding: 2px 8px; font-weight: 600; font-size: 12px; }
-  button {
-    font: inherit; cursor: pointer; border-radius: 9px; border: 1px solid var(--line);
-    background: var(--panel-2); color: var(--text); padding: 8px 12px;
-  }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
-  button.active { border-color: var(--accent); color: var(--accent); }
+  .page { max-width: 1180px; margin: 0 auto; padding: 0 24px 56px; }
+  .mono, .eyebrow, th, .label, .figure-unit { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1, h2, h3, .figure { font-family: "Newsreader", Georgia, "Times New Roman", serif; font-weight: 500; }
 
-  .kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-  .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0;
+  /* Masthead */
+  .masthead { border-top: 4px solid var(--rule); padding: 18px 0 22px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; border-bottom: 1px solid var(--rule); }
+  .masthead h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; margin: 10px 0 10px; letter-spacing: -.015em; }
+  .masthead .deck { max-width: 640px; color: var(--ink-2); font-size: 15px; }
+  .route-box { min-width: 280px; text-align: right; }
+  .route-box .route-name { font-family: "Newsreader", Georgia, serif; font-size: 20px; margin: 6px 0 4px; }
+  .route-box .route-km { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--muted); }
+  .btn {
+    font: inherit; cursor: pointer; background: transparent; color: var(--ink);
+    border: 1px solid var(--ink); padding: 8px 14px; border-radius: 0; font-size: 13px;
   }
-  .kpi .label { color: var(--muted); font-size: 12px; min-height: 32px; }
-  .kpi .value { font-size: 24px; font-weight: 700; margin: 6px 0 2px; letter-spacing: -.01em; overflow-wrap: anywhere; }
-  .kpi .value small { font-size: 13px; font-weight: 600; color: var(--muted); }
-  .kpi .note { color: var(--muted); font-size: 12px; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.solid { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.solid:hover { background: var(--ink); border-color: var(--ink); }
+  .btn.active { background: var(--ink); color: var(--paper); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .route-box .btn-row { justify-content: flex-end; }
 
-  .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
-  .panel-title { font-weight: 650; font-size: 15px; margin: 0 0 4px; }
-  .panel-desc { color: var(--muted); font-size: 12.5px; margin: 0 0 12px; }
-  .field { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; margin-bottom: 8px; }
-  .field label { color: var(--muted); font-size: 12.5px; }
+  /* Sections */
+  section.sec { padding: 28px 0 8px; border-bottom: 1px solid var(--hair); }
+  .sec-head { display: grid; grid-template-columns: 56px 1fr; gap: 8px; margin-bottom: 18px; align-items: baseline; }
+  .sec-num { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--accent); padding-top: 6px; }
+  .sec-head h2 { font-size: 26px; margin: 0; letter-spacing: -.01em; }
+  .sec-head p { grid-column: 2; margin: 2px 0 0; color: var(--muted); max-width: 680px; font-size: 13.5px; }
+  .sec-body { padding-left: 64px; }
+  @media (max-width: 720px) { .sec-body { padding-left: 0; } .sec-head { grid-template-columns: 1fr; } .sec-head p { grid-column: 1; } }
+
+  /* Readout */
+  .readout { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  .readout > div { padding: 14px 14px 16px 0; border-right: 1px solid var(--hair); margin-right: 14px; min-width: 0; }
+  .readout > div:last-child { border-right: none; }
+  .readout .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; min-height: 30px; }
+  .figure { font-size: 38px; line-height: 1.05; margin: 8px 0 6px; letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .figure-unit { font-size: 13px; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+  .readout .note { font-size: 12px; color: var(--muted); }
+  .readout .figure.accent { color: var(--accent); }
+  @media (max-width: 1000px) { .readout { grid-template-columns: repeat(3, minmax(0, 1fr)); } .readout > div:nth-child(3) { border-right: none; } }
+  @media (max-width: 560px) { .readout { grid-template-columns: 1fr 1fr; } .readout > div { border-right: none; margin-right: 0; padding-right: 10px; border-bottom: 1px solid var(--hair); } .figure { font-size: 30px; } }
+
+  /* Route */
+  .route-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 28px; }
+  @media (max-width: 860px) { .route-grid { grid-template-columns: 1fr; } }
+  .route-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .route-fields .wide { grid-column: 1 / -1; }
+  #map { height: 380px; border: 1px solid var(--ink); }
+  .map-cap { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* Form fields */
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; min-width: 0; }
+  .field label { font-size: 12px; color: var(--muted); }
   input[type="number"], input[type="text"], select {
-    width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
-    border-radius: 8px; padding: 7px 9px; font: inherit;
+    width: 100%; background: transparent; color: var(--ink); border: none;
+    border-bottom: 1px solid var(--ink); padding: 6px 2px; font: 14px "IBM Plex Mono", monospace; border-radius: 0;
   }
-  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .group { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  select { font-family: "IBM Plex Sans", sans-serif; }
+  input:focus, select:focus { outline: none; background: var(--paper-2); }
+  .spec { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 28px; }
+  .spec h3 { grid-column: 1 / -1; font-size: 17px; margin: 14px 0 8px; padding-top: 10px; border-top: 1px solid var(--hair); }
+  .spec h3:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+  .spec p.note { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin: -2px 0 8px; }
+  @media (max-width: 960px) { .spec { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .spec { grid-template-columns: 1fr; } }
+  .err { color: var(--warn-ink); font-size: 13px; min-height: 18px; margin-top: 8px; }
 
-  .workspace { display: grid; gap: 16px; min-width: 0; }
-  #map { height: 340px; border-radius: 10px; border: 1px solid var(--line); overflow: hidden; }
-  .map-hint { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+  /* Charts */
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .charts .full { grid-column: 1 / -1; }
+  .chart-cap h3 { font-size: 18px; margin: 0 0 2px; }
+  .chart-cap p { margin: 0 0 8px; color: var(--muted); font-size: 12.5px; }
+  .chart-box { position: relative; height: 260px; border-top: 1px solid var(--ink); padding-top: 10px; }
+  .charts .full .chart-box { height: 280px; }
+  @media (max-width: 860px) { .charts { grid-template-columns: 1fr; } }
 
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .chart-box { position: relative; height: 260px; }
-  canvas { max-width: 100%; }
+  /* Tables */
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--hair); text-align: left; white-space: nowrap; vertical-align: middle; }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--ink); }
+  td.num, th.num { text-align: right; font-family: "IBM Plex Mono", monospace; }
+  .grid-table { overflow-x: auto; }
+  td.cell { text-align: center; padding: 8px 6px; line-height: 1.25; border: 2px solid var(--paper); }
+  .cell.pass { background: var(--pass-bg); color: var(--pass-ink); }
+  .cell.cond { background: var(--cond-bg); color: var(--cond-ink); }
+  .cell.limit { background: var(--limit-bg); color: var(--limit-ink); }
+  .cell.fail { background: var(--fail-bg); color: var(--fail-ink); }
+  .cell small { display: block; font-size: 10.5px; opacity: .9; font-family: "IBM Plex Mono", monospace; }
+  .legend { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+  @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+  .two-col h3 { font-size: 18px; margin: 0 0 6px; }
+  .snap td:first-child { font-family: "IBM Plex Sans", sans-serif; font-weight: 500; }
+  .note-box { color: var(--muted); font-size: 12.5px; margin-top: 12px; max-width: 640px; }
 
-  .bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-  .grid-table { overflow-x: auto; margin-top: 10px; }
-  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
-  th, td { padding: 8px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
-  th { color: var(--muted); font-weight: 600; }
-  td.cell { text-align: center; border-radius: 6px; line-height: 1.25; }
-  .cell.pass { background: rgba(46,196,182,.16); color: var(--ok); }
-  .cell.cond { background: rgba(240,180,76,.16); color: var(--amber); }
-  .cell.limit { background: rgba(91,107,124,.30); color: var(--muted); }
-  .cell.fail { background: rgba(239,100,97,.14); color: var(--red); }
-  .cell small { display: block; font-size: 11px; opacity: .85; }
-  .legend { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  /* Assessment */
+  .checks { display: grid; gap: 0; border-top: 1px solid var(--ink); }
+  .check { display: grid; grid-template-columns: 72px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--hair); }
+  .badge { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .06em; padding-top: 3px; }
+  .badge.ok { color: var(--ok-ink); }
+  .badge.warn { color: var(--warn-ink); }
+  .check h4 { margin: 0 0 2px; font-size: 15px; font-weight: 600; font-family: "IBM Plex Sans", sans-serif; }
+  .check p { margin: 0; color: var(--ink-2); font-size: 13px; }
 
-  .checks { display: grid; gap: 10px; margin-top: 10px; }
-  .check { display: grid; grid-template-columns: 58px 1fr; gap: 12px; padding: 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
-  .badge { font-size: 11px; font-weight: 700; border-radius: 999px; text-align: center; padding: 4px 0; height: fit-content; }
-  .badge.ok { background: rgba(46,196,182,.18); color: var(--ok); }
-  .badge.warn { background: rgba(240,180,76,.18); color: var(--warn); }
-  .check h4 { margin: 0 0 2px; font-size: 13.5px; }
-  .check p { margin: 0; color: var(--muted); font-size: 12.5px; }
+  /* Method */
+  .method { columns: 2; column-gap: 40px; font-size: 13.5px; color: var(--ink-2); }
+  .method li { margin-bottom: 8px; break-inside: avoid; }
+  .method ul { padding-left: 18px; margin: 0; }
+  .method b { color: var(--ink); font-weight: 600; }
+  .method .note-box { columns: 1; }
+  @media (max-width: 760px) { .method { columns: 1; } }
 
-  .snap td:first-child { font-weight: 600; }
-  .note-box { margin-top: 12px; color: var(--muted); font-size: 12.5px; }
-  footer { color: var(--muted); font-size: 12px; margin-top: 24px; line-height: 1.6; }
-  .err { color: var(--red); font-size: 12.5px; margin-top: 6px; min-height: 16px; }
-
-  @media (max-width: 1100px) {
-    .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  }
-  @media (max-width: 900px) {
-    .layout, .bottom, .charts { grid-template-columns: 1fr; }
-    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    h1 { font-size: 22px; }
-  }
-  @media (max-width: 520px) {
-    .wrap { padding: 16px 16px 40px; }
-    .kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .kpi .value { font-size: 19px; }
-    .field { grid-template-columns: 1fr 84px; }
-    #map { height: 280px; }
-  }
+  .colophon { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 18px; color: var(--muted); font-size: 12px; font-family: "IBM Plex Mono", monospace; }
+  .status-line { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+  @media (max-width: 520px) { .page { padding: 0 16px 40px; } .masthead { grid-template-columns: 1fr; } .route-box { text-align: left; min-width: 0; } .route-box .btn-row { justify-content: flex-start; } }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="page">
 
-  <header class="hero">
+  <header class="masthead">
     <div>
-      <div class="eyebrow">UK hydrogen pipeline planning · GBP</div>
-      <h1>Techno-Economic Workbench</h1>
-      <div class="sub">Screen route feasibility, transport cost, compression load and line inventory for transmission-scale hydrogen corridors between UK industrial clusters and demand centres.</div>
+      <div class="eyebrow">Technical data sheet · UK hydrogen transport · GBP</div>
+      <h1>Hydrogen pipeline screening</h1>
+      <p class="deck">Route feasibility, levelised transport cost, compression duty and line inventory for transmission-scale hydrogen corridors between UK industrial clusters and demand centres.</p>
     </div>
-    <div class="route-pill">
-      <span id="routeName">Teesside hub to London (demand)</span>
-      <span class="tag" id="routeKm">167 km</span>
-      <button class="primary" id="recalc" type="button">Recalculate</button>
+    <div class="route-box">
+      <div class="eyebrow">Current corridor</div>
+      <div class="route-name" id="routeName">Teesside hub to London (demand)</div>
+      <div class="route-km"><span id="routeKm">354 km</span></div>
+      <div class="btn-row"><button class="btn solid" id="recalc" type="button">Recalculate</button></div>
     </div>
   </header>
 
-  <section class="kpis" aria-label="Key results">
-    <div class="card kpi"><div class="label">Delivered energy at sink</div><div class="value" id="kDelivered">–</div><div class="note" id="kDeliveredNote"></div></div>
-    <div class="card kpi"><div class="label">Demand coverage</div><div class="value" id="kCoverage">–</div><div class="note" id="kUnmet"></div></div>
-    <div class="card kpi"><div class="label">Transport cost (levelised)</div><div class="value" id="kLco">–</div><div class="note" id="kHeadroom"></div></div>
-    <div class="card kpi"><div class="label">Compression duty</div><div class="value" id="kComp">–</div><div class="note" id="kSections"></div></div>
-    <div class="card kpi"><div class="label">Installed pipeline + compression CAPEX</div><div class="value" id="kCapex">–</div><div class="note" id="kAnnual"></div></div>
-    <div class="card kpi"><div class="label">Total energy penalty</div><div class="value" id="kPenalty">–</div><div class="note" id="kPenaltyNote"></div></div>
+  <section class="sec" aria-labelledby="s-readout">
+    <div class="sec-head"><div class="sec-num">01</div><div><h2 id="s-readout">Readout</h2></div>
+      <p>Headline results for the current case. Figures update as you change any input.</p></div>
+    <div class="sec-body">
+      <div class="readout">
+        <div><div class="label">Delivered at sink</div><div class="figure" id="kDelivered">–</div><div class="note" id="kDeliveredNote"></div></div>
+        <div><div class="label">Demand coverage</div><div class="figure" id="kCoverage">–</div><div class="note" id="kUnmet"></div></div>
+        <div><div class="label">Levelised transport cost</div><div class="figure accent" id="kLco">–</div><div class="note" id="kHeadroom"></div></div>
+        <div><div class="label">Compression duty</div><div class="figure" id="kComp">–</div><div class="note" id="kSections"></div></div>
+        <div><div class="label">Pipeline + compression CAPEX</div><div class="figure" id="kCapex">–</div><div class="note" id="kAnnual"></div></div>
+        <div><div class="label">Energy penalty</div><div class="figure" id="kPenalty">–</div><div class="note" id="kPenaltyNote"></div></div>
+      </div>
+    </div>
   </section>
 
-  <div class="layout">
-    <!-- Sidebar: inputs -->
-    <aside class="card" aria-label="Inputs">
-      <h2 class="panel-title">Route definition</h2>
-      <p class="panel-desc">Choose a UK corridor, click a terminal button and then the map to place a custom one, or enter coordinates below.</p>
-      <div class="field" style="grid-template-columns: 1fr"><label for="preset">UK corridor preset</label><select id="preset"></select></div>
-      <div class="btn-row" style="margin-top:0">
-        <button id="setSrc" type="button">Place source</button>
-        <button id="setSink" type="button">Place sink</button>
-        <button id="swap" type="button">Swap</button>
-      </div>
-
-      <div class="group">
-        <div class="field"><label for="srcName">Source name</label><input type="text" id="srcName" value="Rotterdam Maasvlakte"></div>
-        <div class="row-2">
-          <div><label class="muted" for="srcLat" style="font-size:12px;color:var(--muted)">Lat</label><input type="number" id="srcLat" step="0.001" value="51.955"></div>
-          <div><label class="muted" for="srcLon" style="font-size:12px;color:var(--muted)">Lon</label><input type="number" id="srcLon" step="0.001" value="3.980"></div>
+  <section class="sec" aria-labelledby="s-route">
+    <div class="sec-head"><div class="sec-num">02</div><div><h2 id="s-route">Route</h2></div>
+      <p>Pick a UK corridor, place your own terminals on the map, or type coordinates. Route length defaults to the straight-line distance.</p></div>
+    <div class="sec-body route-grid">
+      <div>
+        <div class="field"><label for="preset">UK corridor preset</label><select id="preset"></select></div>
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn" id="setSrc" type="button">Place source</button>
+          <button class="btn" id="setSink" type="button">Place sink</button>
+          <button class="btn" id="swap" type="button">Swap</button>
         </div>
-        <div class="field" style="margin-top:10px"><label for="sinkName">Sink name</label><input type="text" id="sinkName" value="Geleen (Chemelot)"></div>
-        <div class="row-2">
-          <div><label style="font-size:12px;color:var(--muted)" for="sinkLat">Lat</label><input type="number" id="sinkLat" step="0.001" value="50.975"></div>
-          <div><label style="font-size:12px;color:var(--muted)" for="sinkLon">Lon</label><input type="number" id="sinkLon" step="0.001" value="5.810"></div>
+        <div class="route-fields" style="margin-top:16px">
+          <div class="field"><label for="srcName">Source</label><input type="text" id="srcName" value="Teesside hub"></div>
+          <div class="field"><label for="sinkName">Sink</label><input type="text" id="sinkName" value="London (demand)"></div>
+          <div class="field"><label for="srcLat">Source latitude</label><input type="number" id="srcLat" step="0.001" value="54.6"></div>
+          <div class="field"><label for="sinkLat">Sink latitude</label><input type="number" id="sinkLat" step="0.001" value="51.51"></div>
+          <div class="field"><label for="srcLon">Source longitude</label><input type="number" id="srcLon" step="0.001" value="-1.15"></div>
+          <div class="field"><label for="sinkLon">Sink longitude</label><input type="number" id="sinkLon" step="0.001" value="0.1"></div>
+          <div class="field wide"><label for="routeKmIn">Route length (km)</label><input type="number" id="routeKmIn" step="1" value="354"></div>
         </div>
-        <div class="field" style="margin-top:10px"><label for="routeKmIn">Route length (km)</label><input type="number" id="routeKmIn" step="1" value="167"></div>
         <div class="btn-row">
-          <button class="primary" id="applyRoute" type="button">Apply route</button>
-          <button id="resetRoute" type="button">Reset default</button>
+          <button class="btn solid" id="applyRoute" type="button">Apply route</button>
+          <button class="btn" id="resetRoute" type="button">Reset to preset</button>
         </div>
       </div>
+      <div>
+        <div id="map"></div>
+        <div class="map-cap" id="mapStatus">Select Source or Sink, then click the map to place it. Outside selection mode, drag to pan. Map © OpenStreetMap contributors.</div>
+      </div>
+    </div>
+  </section>
 
-      <div class="group">
-        <h3 class="panel-title" style="font-size:14px">Hydraulics</h3>
-        <p class="panel-desc">Dedicated hydrogen pipeline. Darcy-Weisbach with Colebrook friction, real-gas Z held constant.</p>
+  <section class="sec" aria-labelledby="s-spec">
+    <div class="sec-head"><div class="sec-num">03</div><div><h2 id="s-spec">Specification</h2></div>
+      <p>Every assumption in one place. Economic defaults are placeholders in GBP, not current UK market data.</p></div>
+    <div class="sec-body">
+      <div class="spec">
+        <h3>Hydraulics</h3>
         <div class="field"><label for="dn">Diameter DN (mm)</label><input type="number" id="dn" value="800"></div>
         <div class="field"><label for="pin">Inlet pressure (bar abs)</label><input type="number" id="pin" value="66.2"></div>
         <div class="field"><label for="pout">Outlet pressure (bar abs)</label><input type="number" id="pout" value="30"></div>
         <div class="field"><label for="tC">Gas temperature (°C)</label><input type="number" id="tC" value="15"></div>
         <div class="field"><label for="z">Z-factor</label><input type="number" id="z" step="0.01" value="1.02"></div>
         <div class="field"><label for="rough">Internal roughness (mm)</label><input type="number" id="rough" step="0.005" value="0.045"></div>
-        <div class="field"><label for="eff">Pipeline efficiency factor</label><input type="number" id="eff" step="0.01" value="0.90"></div>
+        <div class="field"><label for="eff">Pipeline efficiency</label><input type="number" id="eff" step="0.01" value="0.90"></div>
         <div class="field"><label for="vmax">Velocity screen (m/s)</label><input type="number" id="vmax" value="30"></div>
-      </div>
 
-      <div class="group">
-        <h3 class="panel-title" style="font-size:14px">Supply and demand</h3>
+        <h3>Supply and demand</h3>
         <div class="field"><label for="srcMW">Source capacity (MW, LHV)</label><input type="number" id="srcMW" value="1000"></div>
-        <div class="field"><label for="demand">Application demand (t H2/day)</label><input type="number" id="demand" value="300"></div>
+        <div class="field"><label for="demand">Application demand (t H₂/day)</label><input type="number" id="demand" value="300"></div>
         <div class="field"><label for="util">Annual utilisation (%)</label><input type="number" id="util" value="90"></div>
-      </div>
 
-      <div class="group">
-        <h3 class="panel-title" style="font-size:14px">Losses and compression</h3>
+        <h3>Losses and compression</h3>
         <div class="field"><label for="leak">Leakage (% per 1000 km)</label><input type="number" id="leak" step="0.01" value="0.2"></div>
         <div class="field"><label for="spacing">Station spacing (km)</label><input type="number" id="spacing" value="200"></div>
         <div class="field"><label for="ceff">Compressor efficiency</label><input type="number" id="ceff" step="0.01" value="0.75"></div>
         <div class="field"><label for="maxpen">Maximum energy penalty (%)</label><input type="number" id="maxpen" value="15"></div>
-      </div>
 
-      <div class="group">
-        <h3 class="panel-title" style="font-size:14px">Economics</h3>
-        <p class="panel-desc">CAPEX scales with diameter; annualised with CRF; transport cost includes fixed OPEX and compressor electricity.</p>
+        <h3>Economics</h3>
+        <p class="note">Placeholders in GBP. Replace with current values from DESNZ, Ofgem, NESO or project quotes before use.</p>
         <div class="field"><label for="capKm">Pipeline CAPEX (£/km)</label><input type="number" id="capKm" value="2150000"></div>
         <div class="field"><label for="dexp">Diameter scaling exponent</label><input type="number" id="dexp" step="0.1" value="1.6"></div>
         <div class="field"><label for="refDn">Reference DN for CAPEX (mm)</label><input type="number" id="refDn" value="800"></div>
         <div class="field"><label for="compKw">Compressor CAPEX (£/kW)</label><input type="number" id="compKw" value="1030"></div>
-        <div class="field"><label for="opex">OPEX (% of CAPEX per year)</label><input type="number" id="opex" step="0.1" value="4"></div>
+        <div class="field"><label for="opex">Fixed OPEX (% of CAPEX/yr)</label><input type="number" id="opex" step="0.1" value="4"></div>
         <div class="field"><label for="elec">Electricity (£/MWh)</label><input type="number" id="elec" value="70"></div>
         <div class="field"><label for="life">Lifetime (years)</label><input type="number" id="life" value="30"></div>
         <div class="field"><label for="wacc">WACC (%)</label><input type="number" id="wacc" step="0.1" value="7"></div>
         <div class="field"><label for="thr">Threshold transport cost (£/kg)</label><input type="number" id="thr" step="0.1" value="2.0"></div>
-        <div class="err" id="inputErr" role="alert"></div>
       </div>
-    </aside>
+      <div class="err" id="inputErr" role="alert"></div>
+    </div>
+  </section>
 
-    <!-- Workspace -->
-    <section class="workspace">
-      <div class="card">
-        <h2 class="panel-title">Route workspace</h2>
-        <p class="panel-desc" id="mapStatus">Select Source or Sink, then click the map to place it. Outside selection mode, drag to pan.</p>
-        <div id="map"></div>
-        <div class="map-hint">Map data © OpenStreetMap contributors.</div>
+  <section class="sec" aria-labelledby="s-profiles">
+    <div class="sec-head"><div class="sec-num">04</div><div><h2 id="s-profiles">Profiles</h2></div>
+      <p>How energy, delivered capacity and cost change with corridor length and source size.</p></div>
+    <div class="sec-body charts">
+      <div class="chart-cap">
+        <h3>Energy journey vs pipeline length</h3>
+        <p>Chemical energy entering, H₂ energy at the sink after routine leakage, and net energy after compressor electricity, 50–5,000 km.</p>
+        <div class="chart-box"><canvas id="chartEnergy"></canvas></div>
       </div>
-
-      <div class="charts">
-        <div class="card">
-          <h2 class="panel-title">Energy journey vs pipeline length</h2>
-          <p class="panel-desc">Chemical energy entering, H₂ energy at the sink after routine leakage, and net energy after compressor electricity, 50–5,000 km.</p>
-          <div class="chart-box"><canvas id="chartEnergy"></canvas></div>
-        </div>
-        <div class="card">
-          <h2 class="panel-title">Delivered energy vs source capacity</h2>
-          <p class="panel-desc">How delivered energy tracks source capacity over this corridor. The active case is marked.</p>
-          <div class="chart-box"><canvas id="chartFlow"></canvas></div>
-        </div>
-        <div class="card" style="grid-column: 1 / -1">
-          <h2 class="panel-title">Cost vs distance</h2>
-          <p class="panel-desc">Levelised transport cost against distance at the current source capacity, with the threshold line.</p>
-          <div class="chart-box" style="height:280px"><canvas id="chartCost"></canvas></div>
-        </div>
+      <div class="chart-cap">
+        <h3>Delivered energy vs source capacity</h3>
+        <p>How delivered energy tracks source capacity over this corridor. The active case is marked.</p>
+        <div class="chart-box"><canvas id="chartFlow"></canvas></div>
       </div>
-    </section>
-  </div>
+      <div class="chart-cap full">
+        <h3>Cost vs distance</h3>
+        <p>Levelised transport cost against distance at the current source capacity, against the threshold.</p>
+        <div class="chart-box"><canvas id="chartCost"></canvas></div>
+      </div>
+    </div>
+  </section>
 
-  <div class="bottom">
-    <section class="card">
-      <h2 class="panel-title">Distance and throughput viability</h2>
-      <p class="panel-desc">Annual throughput against distance on a 800 mm dedicated line. No reviewed paper sets a universal maximum economic distance; this grid shows where the cost threshold is met.</p>
+  <section class="sec" aria-labelledby="s-viability">
+    <div class="sec-head"><div class="sec-num">05</div><div><h2 id="s-viability">Viability grid</h2></div>
+      <p>Annual throughput against distance on an 800 mm dedicated line. No reviewed paper sets a universal maximum economic distance; the grid shows where the threshold is met.</p></div>
+    <div class="sec-body">
       <div class="grid-table"><table id="gridTable"></table></div>
-      <div class="legend"><b>How to read this:</b> green passes the cost threshold and velocity screen; amber passes but velocity is above 20 m/s; grey is hydraulically capacity-limited; red is above the cost threshold.</div>
-    </section>
+      <div class="legend"><b>Key:</b> pass = under threshold, velocity ≤ 20 m/s · conditional = under threshold, velocity 20–30 m/s · capacity-limited = hydraulically constrained · above cost = over threshold.</div>
+    </div>
+  </section>
 
-    <section class="card">
-      <h2 class="panel-title">Scenario snapshot</h2>
-      <p class="panel-desc">A side-by-side view of how the case responds to a larger diameter and a longer corridor.</p>
-      <div class="grid-table"><table class="snap" id="snapTable"></table></div>
-      <div class="note-box">All results are screening estimates. Transient flow, elevation, fittings, fatigue life, impurities and accidental-release consequences need specialist assessment.</div>
-    </section>
-  </div>
+  <section class="sec" aria-labelledby="s-scen">
+    <div class="sec-head"><div class="sec-num">06</div><div><h2 id="s-scen">Scenarios and operations</h2></div>
+      <p>Side-by-side view of a larger diameter and a longer corridor, with hydraulic and commercial breakdowns for the current case.</p></div>
+    <div class="sec-body">
+      <div class="two-col">
+        <div>
+          <h3>Scenario snapshot</h3>
+          <div class="grid-table"><table class="snap" id="snapTable"></table></div>
+          <div class="note-box">All results are screening estimates. Transient flow, elevation, fittings, fatigue life, impurities and accidental-release consequences need specialist assessment.</div>
+        </div>
+        <div>
+          <h3>Hydraulic and delivery</h3>
+          <table id="hydTable"></table>
+        </div>
+      </div>
+      <div style="margin-top:28px">
+        <h3>Commercial and operations</h3>
+        <table id="comTable"></table>
+      </div>
+    </div>
+  </section>
 
-  <div class="bottom">
-    <section class="card">
-      <h2 class="panel-title">Hydraulic and delivery</h2>
-      <table id="hydTable"></table>
-    </section>
-    <section class="card">
-      <h2 class="panel-title">Commercial and operations</h2>
-      <table id="comTable"></table>
-    </section>
-  </div>
+  <section class="sec" aria-labelledby="s-assess">
+    <div class="sec-head"><div class="sec-num">07</div><div><h2 id="s-assess">Assessment</h2></div>
+      <p>Decision-support signals for the current case, including feasibility checks and where the main constraint sits.</p></div>
+    <div class="sec-body"><div class="checks" id="checks"></div></div>
+  </section>
 
-  <div class="bottom">
-    <section class="card">
-      <h2 class="panel-title">Route assessment</h2>
-      <p class="panel-desc">Decision-support signals for the current case, including feasibility checks and where the main constraint sits.</p>
-      <div class="checks" id="checks"></div>
-    </section>
-    <section class="card">
-      <h2 class="panel-title">Method</h2>
-      <p class="panel-desc">Transparent so you can check each number.</p>
-      <ul style="color:var(--muted); font-size:12.5px; padding-left:18px; margin:0; display:grid; gap:6px">
-        <li><b style="color:var(--text)">Flow:</b> source MW × (1 − routine leakage) ÷ LHV (120 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
-        <li><b style="color:var(--text)">Velocity and friction:</b> inlet density from P, Z, T. Average velocity uses mean pressure. Friction factor from Colebrook (iterative).</li>
-        <li><b style="color:var(--text)">Hydraulic capacity:</b> flow at which the Darcy pressure drop over one section equals inlet minus outlet pressure.</li>
-        <li><b style="color:var(--text)">Compression:</b> one station per spacing interval, each raising pressure from outlet back to inlet (ratio P_in/P_out). Isentropic power, cp = 14.3 kJ/kg·K, k = 1.41, divided by compressor efficiency.</li>
-        <li><b style="color:var(--text)">Cost:</b> (pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
-        <li><b style="color:var(--text)">Leakage:</b> routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
+  <section class="sec" aria-labelledby="s-method">
+    <div class="sec-head"><div class="sec-num">08</div><div><h2 id="s-method">Method and limits</h2></div>
+      <p>Each step is stated so it can be checked against the numbers above.</p></div>
+    <div class="sec-body">
+      <ul class="method">
+        <li><b>Flow.</b> Source MW × (1 − routine leakage) ÷ LHV (120 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
+        <li><b>Velocity and friction.</b> Inlet density from P, Z and T. Average velocity uses mean pressure. Friction factor from Colebrook, solved iteratively.</li>
+        <li><b>Hydraulic capacity.</b> The flow at which the Darcy pressure drop over one section equals (inlet − outlet pressure) × efficiency.</li>
+        <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.3 kJ/kg·K and k = 1.41, divided by compressor efficiency.</li>
+        <li><b>Cost.</b> (Pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
+        <li><b>Leakage.</b> Routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
+        <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
+        <li><b>Defaults.</b> CAPEX, compressor, electricity and threshold values are placeholders in GBP. Replace them with sourced UK values before relying on any output.</li>
       </ul>
-      <div class="note-box"><b style="color:var(--text)">UK defaults:</b> the CAPEX, compressor, electricity and threshold inputs are placeholders in GBP, not current UK market data. Replace them with current values from your own sources (for example DESNZ cost reports, Ofgem and NESO price data, or project-specific quotes) before relying on any output.</div>
-      <div class="note-box"><b style="color:var(--text)">Research guardrail:</b> dedicated and repurposed pipelines are not assumed equivalent. This page models dedicated H₂ only. Accidental buried-pipeline leaks and their consequences are outside the routine-loss model.</div>
-    </section>
-  </div>
+    </div>
+  </section>
 
-  <footer>
-    <div>Hydrogen Pipeline Techno-Economic Workbench. Screening model for planning discussions. Not a design basis and not investment advice.</div>
-    <div>Author: Shreyas Kadu. Built with Leaflet and Chart.js. Map tiles © OpenStreetMap contributors. Hub locations are approximate.</div>
+  <footer class="colophon">
+    <span>UK Hydrogen Pipeline Techno-Economic Workbench · screening only, not a design basis or investment advice</span>
+    <span>Shreyas Kadu · Leaflet, Chart.js · map © OpenStreetMap contributors · hub locations approximate</span>
   </footer>
 </div>
 

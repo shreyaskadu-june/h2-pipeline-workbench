@@ -110,7 +110,7 @@
     if (!state.srcMarker) {
       state.srcMarker = L.marker(s, { title: 'Source' }).addTo(state.map);
       state.sinkMarker = L.marker(t, { title: 'Sink' }).addTo(state.map);
-      state.line = L.polyline([s, t], { color: '#5aa9e6', weight: 4, opacity: 0.85 }).addTo(state.map);
+      state.line = L.polyline([s, t], { color: '#2d4a6b', weight: 4, opacity: 0.85 }).addTo(state.map);
     } else {
       state.srcMarker.setLatLng(s); state.sinkMarker.setLatLng(t); state.line.setLatLngs([s, t]);
     }
@@ -230,7 +230,7 @@
   }
 
   function chartDefaults() {
-    var muted = css('--muted') || '#8fa6b9', line = css('--line') || '#1d3550';
+    var muted = css('--muted') || '#6d675c', line = css('--hair') || '#cfc8b8';
     if (window.Chart) {
       Chart.defaults.color = muted;
       Chart.defaults.borderColor = line;
@@ -253,7 +253,7 @@
   function renderCharts(p, r) {
     if (!window.Chart) return;
     var c = chartDefaults();
-    var blue = '#5aa9e6', green = '#2ec4b6', amber = '#f2b24b', red = '#e8635c';
+    var blue = '#2d4a6b', green = '#c8452c', amber = '#1b1b1b', red = '#c8452c';
 
     // 1) Energy journey vs length
     var lens = [], chem = [], h2 = [], net = [];
