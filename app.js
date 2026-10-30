@@ -70,9 +70,11 @@
   }
 
   // Fade each section in once, as it scrolls into view.
+  // Sections are hidden only once this runs, so a failed script never leaves the page blank.
   function setupReveal() {
     var secs = document.querySelectorAll('section.sec');
     if (!('IntersectionObserver' in window)) { for (var i = 0; i < secs.length; i++) secs[i].classList.add('in'); return; }
+    document.documentElement.classList.add('js');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.08 });
