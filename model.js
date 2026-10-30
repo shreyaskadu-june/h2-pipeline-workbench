@@ -3,7 +3,7 @@
  *
  * Assumptions, stated so they can be checked:
  *  - Dedicated hydrogen pipeline, steady state, isothermal, Z held constant.
- *  - Flow in kg/s from LHV (120 MJ/kg). Routine leakage is a fraction of the
+ *  - Flow in kg/s from LHV (119.96 MJ/kg). Routine leakage is a fraction of the
  *    source energy per 1000 km; it reduces delivered energy only.
  *  - Compressor stations every `spacing` km; each raises pressure from the
  *    outlet pressure back to the inlet pressure (ratio = Pin / Pout).
@@ -94,16 +94,16 @@
     var hyd = sectionState(p, mGross, sectionKm);
     var capMW = hydraulicCapacityMW(p, sectionKm);
 
-    var pipeCapex = p.capKm * L * Math.pow(p.dnMm / p.refDn, p.dexp);     // EUR
-    var compCapex = compMW * 1000 * p.compKw;                             // EUR
+    var pipeCapex = p.capKm * L * Math.pow(p.dnMm / p.refDn, p.dexp);     // GBP
+    var compCapex = compMW * 1000 * p.compKw;                             // GBP
     var capex = pipeCapex + compCapex;
     var i = p.wacc / 100;
     var annualCapex = capex * crf(i, p.life);
     var fixedOpex = capex * p.opex / 100;
-    var elecCost = compMW * 8760 * (p.util / 100) * p.elec;               // EUR/yr
+    var elecCost = compMW * 8760 * (p.util / 100) * p.elec;               // GBP/yr
     var totalAnnual = annualCapex + fixedOpex + elecCost;
     var annualKg = mDel * 3600 * 8760 * (p.util / 100);
-    var lco = totalAnnual / annualKg;                                     // EUR/kg
+    var lco = totalAnnual / annualKg;                                     // GBP/kg
 
     var deliveredTpd = mDel * 86400 / 1000;
     var coverage = deliveredTpd / p.demand;

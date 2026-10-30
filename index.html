@@ -324,12 +324,13 @@
       <p>Each step is stated so it can be checked against the numbers above.</p></div>
     <div class="sec-body">
       <ul class="method">
-        <li><b>Flow.</b> Source MW × (1 − routine leakage) ÷ LHV (120 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
+        <li><b>Flow.</b> Source MW × (1 − routine leakage) ÷ LHV (119.96 MJ/kg) gives kg/h. Net annual delivery = kg/h × 8,760 h × utilisation.</li>
         <li><b>Velocity and friction.</b> Inlet density from P, Z and T. Average velocity uses mean pressure. Friction factor from Colebrook, solved iteratively.</li>
         <li><b>Hydraulic capacity.</b> The flow at which the Darcy pressure drop over one section equals (inlet − outlet pressure) × efficiency.</li>
         <li><b>Compression.</b> One station per spacing interval, each raising pressure from outlet back to inlet (ratio P<sub>in</sub>/P<sub>out</sub>). Isentropic power with cp = 14.45 kJ/kg·K and k = 1.417, divided by compressor efficiency.</li>
         <li><b>Cost.</b> (Pipeline + compressor CAPEX) × CRF + fixed OPEX + compressor electricity, divided by net annual kg.</li>
         <li><b>Leakage.</b> Routine loss only, at the stated % per 1000 km. External accidental release is not modelled.</li>
+        <li><b>Interpretations.</b> The pipeline efficiency factor multiplies the allowable pressure drop when computing hydraulic capacity. The 20 m/s (amber) and 30 m/s (red) velocity bands are screening choices, not a published standard. Station spacing, leakage, OPEX, WACC and lifetime are inherited defaults and are not independently sourced.</li>
         <li><b>Scope.</b> Dedicated H₂ pipelines only. Repurposed gas pipelines are not assumed equivalent and are not modelled here.</li>
         <li><b>Defaults.</b> Electricity is sourced (DESNZ, Q4 2025, manufacturing). CAPEX, compressor and threshold values are placeholders in GBP. Compression is sized from the imposed pressure ratio, not from the hydraulic drop, so compressor power is a design choice; the hydraulic drop over one section is only about 1 bar at these flows.</li>
       </ul>

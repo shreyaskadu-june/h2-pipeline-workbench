@@ -211,7 +211,7 @@
   function renderChecks(p, r) {
     var be = H.breakEvenKm(p);
     var h = '';
-    h += check('warn', 'Dedicated hydrogen design', 'Purpose-built H₂ service is assumed. Reviewed examples operate near 65 bar(g); that is context, not a universal design limit.');
+    h += check('warn', 'Dedicated hydrogen design', 'Purpose-built H₂ service is assumed. The reference workbench cites examples near 65 bar(g); this is context, not a design limit, and has not been independently verified here.');
     h += p.srcMW <= r.capacityMW
       ? check('ok', 'Source fits hydraulic capacity', 'Calculated hydraulic capacity is ' + fmt(r.capacityMW, 0) + ' MW for approximately ' + fmt(r.sectionKm, 0) + ' km per pressure section.')
       : check('warn', 'Source exceeds hydraulic capacity', 'The source is ' + fmt(p.srcMW, 0) + ' MW but one section carries about ' + fmt(r.capacityMW, 0) + ' MW at this pressure drop. Add stations, raise the diameter, or reduce the source.');
