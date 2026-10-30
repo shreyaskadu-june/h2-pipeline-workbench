@@ -97,7 +97,7 @@ Every input that drives the answer is listed here with its source, or marked as 
 | Design factor for hydrogen | 0.40 for X65 (0.50 X52, 0.43 X60, 0.37 X70) | IGEM/TD/1 Ed.6 Supplement 2, Table S1, as reproduced in the Cosham ICHEME paper. Check against the standard itself (it is paywalled). | Edition 6, Supplement 2 (edition date not verified) | Sourced |
 | SMYS by grade | X65 448 MPa (X52 359, X60 414, X70 483) | API 5L specified minimum yield strength | Standard | Sourced |
 | Ground temperature | 10.6 °C mean soil; 5.2–16 °C range at 1 m | British Geological Survey, GR_999999/1 (Ground Source Heat Pump, Basic) | 2018 | Sourced |
-| Overall heat transfer to ground | 2 W/m²K | Assumption; a sourced buried-pipeline value is still to be found | — | Assumption (small effect: about 4 K cooling over the route) |
+| Overall heat transfer to ground | 2 W/m²K (equivalent to soil conductivity ≈ 1.7 W/mK) | Derived from the buried-pipe conduction shape factor (0.81 m OD, 1.2 m cover to pipe crown). Soil conductivity 0.87 W/mK (Wetenhall et al. 2017, IJGGC, base case) to 2.5 W/mK (effect levels off above) gives U ≈ 1.0–3.0 W/m²K. No sourced U-value for buried gas pipe was found directly. | 2017 | Derived; range used in sensitivity |
 | Wall thickness | 16 mm | Input. Required wall at 66.2 bar for X65 DN800 is 15.3 mm (check shown in the app); MAOP 68.9 bar. | — | Assumption, checked against design factor |
 | Fitting losses | 0.1 bends per km, K = 0.45 each | Crane TP-410 long-radius 90° elbow K = 0.45 (as reproduced in a Neutrium table; check the Crane original). Bend count is an assumption. | — | Partly sourced |
 | Real-gas properties | Density, Z, viscosity, cp, k, Joule-Thomson coefficient | NIST via CoolProp 8.0.0 (`h2props.js`) | Current | Sourced |
